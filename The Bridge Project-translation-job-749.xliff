@@ -1,0 +1,262 @@
+<?xml version="1.0" encoding="utf-8" standalone="no"?>
+<xliff xmlns="urn:oasis:names:tc:xliff:document:1.2" version="1.2" xmlns:tool="https://cdn.wpml.org/xliff/custom-attributes.xsd"><file original="749-03d72098652ff1532c5cf3b60464ac9a" source-language="en" target-language="de" tool:source-language-domain="https://thebridgeproject.eu" tool:target-language-domain="https://thebridgeproject.eu" tool:sender-id="9" tool:sender-username="cypruscomputersociety" tool:sender-email="vhconsult306@gmail.com" tool:sender-display-name="Bridge Project" tool:wpml-words-to-translate-count="954" tool:wpml-automatic-translation-costs="0" datatype="plaintext"><header><phase-group><phase phase-name="shortcodes" process-name="Shortcodes identification"><note>wp_caption,caption,gallery,playlist,audio,video,embed,wpml_language_form_field,embedpress_calendar,embed_oembed_html,embedpress,embedpress_pdf,embedpress_doc,stm_lms_courses_grid_display,stm_courses_searchbox,stm_lms_single_course_carousel,stm_lms_instructors_carousel,stm_lms_courses_grid,stm_lms_courses_carousel,stm_lms_recent_courses,stm_lms_courses_categories,stm_lms_featured_teacher,masterstudy_authorization_form,masterstudy_instructor_registration,masterstudy_membership_pricing,presto_player_chapter,presto_playlist_item,presto_player_overlay,presto_player_track,presto_player,presto_timestamp,pptime,presto_playlist,presto_popup,rank_math_seo_score,wpml_language_switcher,wpml_language_selector_widget,wpml_language_selector_footer,wpml-string,h5p,stm_lms_certificate_checker,solid_posts,solid_posts_views,solid_posts_views_raw,solid_posts_time,solid_posts_time_raw,solid_posts_avg_time,solid_posts_avg_time_raw,solid_posts_read_time,solid_posts_read_time_raw,solid_posts_likes,solid_posts_likes_raw,rank_math_rich_snippet,rank_math_review_snippet,elementor-element,elementor-template,onetap_accessibility,iawp_view_counter,zynith-breadcrumbs,obfuscate,rank_math_breadcrumb,call_to_action,newsletter,tours_shortcode,cta_button,woocommerce_thankyou,woocommerce_shop,table,custom_profile,symple_heading,row,tagcloud,sform,nano,add_eventon_list,che,era,essa,nel,gli,per,come,anima,ella,quel,show_gd_mylist_btn,su_spoiler,email,vul,wpv-view,wpv-post-field,accordion_item,citation,foogallery,user-submitted-posts,chronologie,adresse,get_unit_label,get_reference_label,woocommerce_api_manager_lost_api_key,wp-knowledgebase,testimonials_slider,rpwe,posts,nowotworu,intima-media,dostarcza,standaryzowany,jako,czarny,ekstrakt,kwas,std,dwuwodzian,stm_icon_box,ess_grid,rev_slider,linkview,dropcap,permalinklist,testimonial_slider,woocommerce_software_lost_license,text-blocks,wp_sitemap_page,wcmp_vendor,vendor_registration,efsrow,efscolumn,efsbutton,md_rev_slider,md_live_text,md_imagebox_full,flagallery,pbr_quicklinksmenu,rev_slider_vc,opalhotel_reservation_form,pbr_title_heading,pbr_testimonials,embedyt,yith_wcwl_wishlist,wcm_content_restricted,feature_box,woocommerce_en_check,wc_box,wc_row,wc_column,wc_fullwidth,wc_center,wp_social_sharing,infoboxes,testimonials,woocommerce_social_media_share_buttons,wcv_vendor_dashboard,wcv_shop_settings,wcv_orders,inplayer,useyourdrive,wp_blog_designer,us_blog,tt_address,tt_dashboard,envira-gallery,hotspotitem,woocommerce_klarna_checkout,wpml_mailto,contact-field,ux_banner,advanced_iframe,siteorigin_widget,ec_store,simpay_payment_receipt,su-mensaje,borlabs_cookie,contact_info,stm_boats_video,packages_orderdata,yith_ywraq_request_quote,woocommerce_pay,button,supsystic-tables,clean-login,pdf-embedder,insertgenerator,youzer_register,wysija_form,customer-area,customer-area-dashboard,customer-area-private-files-home,customer-area-private-files,customer-account-home,customer-area-account,customer-area-logout,bookly-form,bookly-cancellation-confirmation,stm_classic_filter,popup_trigger,mainwp_archived_lists,wcv_vendorslist,dotpay_content,formularz,cyberactive_school_courses_selection_form,cyberactive_school_session_timeout,ditty_news_ticker,donationcampaign,das-list-events,event_embed,sectiontitle,learn_press_profile,ticket-submit,tickets,aanduiding,datum,thim-icon-box,ngg_images,wpdomainchecker,visualizer,mk_page_section,rssreviews,animate_this,simple-sitemap,gravityform,stm_tech_info,fep_submission_form,ucaddon_diagonal_event_box,wcv_feedback_form,newsletters_management,wcv_pro_dashboard,tm_pb_section,wwof_product_listing,res_map,jssupportticket,socialbar,socialbar_service,front-end-pm,stm_sidebar,give_receipt,donation_history,simpay_error,tm_pb_contact_field,jwp,woocommerce_checkout,mk_custom_list,sg_popup,icon,extra_wrap,frontier-post,invierno,appbox,highlight,ci_alert,vc_mad_products,dt_list,geoip-continent,geoip-country,geoip-region,geoip-city,geoip-postalcode,geoip-latitude,geoip-longitude,geoip-location,woocommerce_notices,post-timeline,private-message,ga_optout,manage_serial_key_usage,ut_header,site_name,bfname,order_id,menu-country,menu-prefer,accordion-item,mini-icon,gvlogic,stm_gmap,contact-form,iconbox,woocommerce_my_account,super_form,wpdm-all-packages,photoblocks,et_pb_map_pin,ginger_reset_cookie,su_divider,fbl_login_button,gmw_single_location,one_full,recent_products,custom_list,endif,jours,wpuf-login,lyte,product_table,wpuf-registration,wpuf_dashboard,amazon,member-pricing-table,rozinky,add_to_cart_url,srizonfbgallery,cl-itext,icon_counter,text_block,vtftable,header_static,bookingcalendar,flexslider,anova-geoip-meta,zp_vc_slideshow_element,zp_scrollto,my_calendar_upcoming,wpv-post-url,fusion_button,su_tab,freeconsultation_technical_forum_link,vc_images_carousel,otgs_logo_url,wpv-conditional,teaser,dt_fancy_image,fusion_tagline_box,contact_us_add,content_box,tagline_box,us_iconbox,fusion_tab,fisicamente,one_half_sidebar,action-btn,invicta_contacts,pricing_price,icon_link,slideshow,vcex_milestone,secondary-demo,vh_pricing_table,category_name,blogurl,q_team,tab_nav_item</note></phase><phase phase-name="post_type" process-name="Post type"><note>post_stm-lessons</note></phase></phase-group><reference><external-file href="https://thebridgeproject.eu/stm-lessons/8-2-unit-2-basic-safety-principles/"/></reference></header><body><trans-unit resname="title" restype="string" datatype="html" id="title"><source><![CDATA[8.2 Unit 2 - Basic Safety Principles]]></source><target><![CDATA[8.2 Unit 2 - Basic Safety Principles]]></target><tool:extradata unit="Title" type="text" group="Main Content" group_id="Main_Content-0"/></trans-unit><trans-unit resname="body" restype="string" datatype="html" id="body"><source><![CDATA[<h2>Introduction</h2>
+Social media is fun and useful, but it is important to use it safely. This unit will teach you three basic safety rules: how to check your privacy settings, why you should avoid friend or follow requests from people you do not know, and how to think before you share something online. These simple steps will help you protect your personal information, avoid online risks, and feel more confident when using platforms like Facebook, X, Instagram, TikTok or LinkedIn. By the end of this unit, you will know how to take control of your privacy and stay safe while connecting with others online.
+
+&nbsp;
+<h2>Topic 1 - Who can see what I share?</h2>
+Be connected with your friends and family is great especially when you do not live close enough to see them at least once week. You can keep them updated through your social media. But it is important to be safe on social media and check with who you share your posts, photos and information about yourself.
+
+Every social media platform—like Facebook, Instagram, or TikTok—has settings that control who can see what you post. These are called <strong>privacy settings</strong>. If you do not check and adjust them, your photos, updates, or personal information might be visible to anyone, even people you do not know.
+<h4>You can usually choose between:</h4>
+<ul>
+ 	<li>Public: anyone can see your posts, even if they are not your friend or follower.</li>
+ 	<li>Friends only / Followers only: only people you have approved can see your content.</li>
+ 	<li>Private or Custom settings: you choose exactly who can see what.</li>
+</ul>
+<h4></h4>
+<h4>Why it matters:</h4>
+If your profile is public, anyone can see your photos, comments, and even where you live or work. Scammers could use that to trick you or cause trouble. Even employers or schools might see posts that could affect your reputation.
+<h4></h4>
+<h4>What you can do:</h4>
+<ul>
+ 	<li>Go to the “Privacy” or “Settings” section of your social media account.</li>
+ 	<li>Set your profile to “Friends only” or “Private.”</li>
+ 	<li>Check who can see your old posts and limit them if needed.
+<ul>
+ 	<li>Go to your profile.</li>
+ 	<li>Find your old posts.</li>
+ 	<li>Click the audience selector (it might say “Public,” “Friends,” or a little icon).</li>
+ 	<li>Choose who can see the post (for example, “Friends” or “Only me”).</li>
+ 	<li>Repeat for other posts if needed.</li>
+</ul>
+</li>
+ 	<li>Check apps connected to your account:
+<ul>
+ 	<li>Go to your account settings.</li>
+ 	<li>Look for “Apps” or “Connected apps.”</li>
+ 	<li>See which apps can use your account.</li>
+ 	<li>Remove any app you do not trust or use.</li>
+</ul>
+</li>
+</ul>
+<strong>Tip:</strong> Even if your settings are private, someone can still screenshot your post and share it. Always think before posting anything sensitive.
+
+<img style="display: block; margin-left: auto; margin-right: auto;" title="8.2 Unit 2 - Basic Safety Principles 1" src="http://thebridgeproject.eu/wp-content/uploads/8.2-Unit-2-Basic-Safety-Principles-1.webp" alt="" width="auto" height="auto" />
+
+&nbsp;
+<h2>Topic 2 – Should I accept this friend request?</h2>
+It may feel good to have as many friends online or followers as possible, but this can be dangerous. So, before you accept any friend request, even it is a mutual friend, you should be careful, because it can be a <span style="text-decoration: underline;"><strong>fake profile</strong>.</span>
+
+&nbsp;
+<h4>Some fake profiles are created to:</h4>
+<ul>
+ 	<li>Collect personal information about you or your contacts.</li>
+ 	<li>Send you scam messages or harmful links.</li>
+ 	<li>Gain your trust and then ask for money or private photos.</li>
+</ul>
+<h4></h4>
+<h4>Warning signs of a fake profile:</h4>
+<ul>
+ 	<li>The person has only a few photos or posts.</li>
+ 	<li>They have very few friends or followers.</li>
+ 	<li>Their messages feel strange, pushy, or too personal too soon.</li>
+ 	<li>The profile was created recently.</li>
+</ul>
+<h4></h4>
+<h4>What to do:</h4>
+<ul>
+ 	<li>If you do not know the person, do not accept the request.</li>
+ 	<li>Search their name and check if they are real (Google, reverse image search, mutual connections).</li>
+ 	<li>Block or report suspicious profiles.</li>
+ 	<li>Only connect with people you know in real life or trust online.</li>
+</ul>
+Remember, just because someone has a profile photo does not mean they are real. Scammers often steal pictures from the internet or other users.
+
+<strong>Tip:</strong> Your safety is more important than being polite. You are not rude for ignoring or rejecting a request.
+
+If you think a profile is fake, most social media platforms allow you to report it. Look for options like “Report” or “Find support or report profile.” Reporting helps the platform remove harmful or dishonest users and protects others too.
+
+&nbsp;
+<h2>Topic 3 - Is it safe to post this?</h2>
+Everything you post online becomes part of your <strong>digital footprint - </strong>this means the information about you that exists online and can be seen, shared, or saved by others. Even if you delete something later, it might already have been downloaded, screenshotted, or indexed by search engines. This digital footprint can affect your privacy, security, and reputation.
+<h4>Even small details in posts can share a lot:</h4>
+<ul>
+ 	<li>A photo outside your home might show your address.</li>
+ 	<li>A birthday post could help someone guess your password.</li>
+ 	<li>A school logo on a child T-shirt might show where they study.</li>
+ 	<li>Travel photos tell people your house is empty.</li>
+</ul>
+<h4></h4>
+<h4>Smart sharing habits:</h4>
+<ul>
+ 	<li>Avoid sharing exact locations in real time (e.g., “I am at the airport now”).</li>
+ 	<li>Wait to post travel photos until you return home.</li>
+ 	<li>Do not tag your home, school, or workplace.</li>
+ 	<li>Use general captions instead of specific personal info.</li>
+ 	<li>Blur or cover faces or names of children and other people.</li>
+</ul>
+<h4></h4>
+<h4>Why it matters:</h4>
+<ul>
+ 	<li>Criminals, scammers, or stalkers can collect this data.</li>
+ 	<li>Oversharing makes it easier for someone to pretend to be you (identity theft).</li>
+ 	<li>It can impact your safety or the safety of your loved ones.</li>
+</ul>
+<strong>Tip:</strong> Before posting, ask: Would I say this to a stranger? If not, do not post it.
+
+&nbsp;
+
+<img style="float: left;" title="8.2 Unit 2 - Basic Safety Principles 2" src="http://thebridgeproject.eu/wp-content/uploads/8.2-Unit-2-Basic-Safety-Principles-2.webp" alt="" width="425" height="239" /><img style="float: right;" title="8.2 Unit 2 - Basic Safety Principles 3" src="http://thebridgeproject.eu/wp-content/uploads/8.2-Unit-2-Basic-Safety-Principles-3.webp" alt="" width="425" height="239" />
+
+&nbsp;
+
+&nbsp;
+
+&nbsp;
+
+&nbsp;
+
+&nbsp;
+
+&nbsp;
+
+&nbsp;
+
+&nbsp;
+
+&nbsp;
+<h2>Gamification Activity</h2>
+<h3>Activity Title: Crossword</h3>
+Use the clues to fill in the crossword puzzle with the correct words. Each word is connected to protecting your personal information and using social media responsibly.
+
+[h5p id="21"]]]></source><target><![CDATA[<h2>Introduction</h2>
+Social media is fun and useful, but it is important to use it safely. This unit will teach you three basic safety rules: how to check your privacy settings, why you should avoid friend or follow requests from people you do not know, and how to think before you share something online. These simple steps will help you protect your personal information, avoid online risks, and feel more confident when using platforms like Facebook, X, Instagram, TikTok or LinkedIn. By the end of this unit, you will know how to take control of your privacy and stay safe while connecting with others online.
+
+&nbsp;
+<h2>Topic 1 - Who can see what I share?</h2>
+Be connected with your friends and family is great especially when you do not live close enough to see them at least once week. You can keep them updated through your social media. But it is important to be safe on social media and check with who you share your posts, photos and information about yourself.
+
+Every social media platform—like Facebook, Instagram, or TikTok—has settings that control who can see what you post. These are called <strong>privacy settings</strong>. If you do not check and adjust them, your photos, updates, or personal information might be visible to anyone, even people you do not know.
+<h4>You can usually choose between:</h4>
+<ul>
+ 	<li>Public: anyone can see your posts, even if they are not your friend or follower.</li>
+ 	<li>Friends only / Followers only: only people you have approved can see your content.</li>
+ 	<li>Private or Custom settings: you choose exactly who can see what.</li>
+</ul>
+<h4></h4>
+<h4>Why it matters:</h4>
+If your profile is public, anyone can see your photos, comments, and even where you live or work. Scammers could use that to trick you or cause trouble. Even employers or schools might see posts that could affect your reputation.
+<h4></h4>
+<h4>What you can do:</h4>
+<ul>
+ 	<li>Go to the “Privacy” or “Settings” section of your social media account.</li>
+ 	<li>Set your profile to “Friends only” or “Private.”</li>
+ 	<li>Check who can see your old posts and limit them if needed.
+<ul>
+ 	<li>Go to your profile.</li>
+ 	<li>Find your old posts.</li>
+ 	<li>Click the audience selector (it might say “Public,” “Friends,” or a little icon).</li>
+ 	<li>Choose who can see the post (for example, “Friends” or “Only me”).</li>
+ 	<li>Repeat for other posts if needed.</li>
+</ul>
+</li>
+ 	<li>Check apps connected to your account:
+<ul>
+ 	<li>Go to your account settings.</li>
+ 	<li>Look for “Apps” or “Connected apps.”</li>
+ 	<li>See which apps can use your account.</li>
+ 	<li>Remove any app you do not trust or use.</li>
+</ul>
+</li>
+</ul>
+<strong>Tip:</strong> Even if your settings are private, someone can still screenshot your post and share it. Always think before posting anything sensitive.
+
+<img style="display: block; margin-left: auto; margin-right: auto;" title="8.2 Unit 2 - Basic Safety Principles 1" src="http://thebridgeproject.eu/wp-content/uploads/8.2-Unit-2-Basic-Safety-Principles-1.webp" alt="" width="auto" height="auto" />
+
+&nbsp;
+<h2>Topic 2 – Should I accept this friend request?</h2>
+It may feel good to have as many friends online or followers as possible, but this can be dangerous. So, before you accept any friend request, even it is a mutual friend, you should be careful, because it can be a <span style="text-decoration: underline;"><strong>fake profile</strong>.</span>
+
+&nbsp;
+<h4>Some fake profiles are created to:</h4>
+<ul>
+ 	<li>Collect personal information about you or your contacts.</li>
+ 	<li>Send you scam messages or harmful links.</li>
+ 	<li>Gain your trust and then ask for money or private photos.</li>
+</ul>
+<h4></h4>
+<h4>Warning signs of a fake profile:</h4>
+<ul>
+ 	<li>The person has only a few photos or posts.</li>
+ 	<li>They have very few friends or followers.</li>
+ 	<li>Their messages feel strange, pushy, or too personal too soon.</li>
+ 	<li>The profile was created recently.</li>
+</ul>
+<h4></h4>
+<h4>What to do:</h4>
+<ul>
+ 	<li>If you do not know the person, do not accept the request.</li>
+ 	<li>Search their name and check if they are real (Google, reverse image search, mutual connections).</li>
+ 	<li>Block or report suspicious profiles.</li>
+ 	<li>Only connect with people you know in real life or trust online.</li>
+</ul>
+Remember, just because someone has a profile photo does not mean they are real. Scammers often steal pictures from the internet or other users.
+
+<strong>Tip:</strong> Your safety is more important than being polite. You are not rude for ignoring or rejecting a request.
+
+If you think a profile is fake, most social media platforms allow you to report it. Look for options like “Report” or “Find support or report profile.” Reporting helps the platform remove harmful or dishonest users and protects others too.
+
+&nbsp;
+<h2>Topic 3 - Is it safe to post this?</h2>
+Everything you post online becomes part of your <strong>digital footprint - </strong>this means the information about you that exists online and can be seen, shared, or saved by others. Even if you delete something later, it might already have been downloaded, screenshotted, or indexed by search engines. This digital footprint can affect your privacy, security, and reputation.
+<h4>Even small details in posts can share a lot:</h4>
+<ul>
+ 	<li>A photo outside your home might show your address.</li>
+ 	<li>A birthday post could help someone guess your password.</li>
+ 	<li>A school logo on a child T-shirt might show where they study.</li>
+ 	<li>Travel photos tell people your house is empty.</li>
+</ul>
+<h4></h4>
+<h4>Smart sharing habits:</h4>
+<ul>
+ 	<li>Avoid sharing exact locations in real time (e.g., “I am at the airport now”).</li>
+ 	<li>Wait to post travel photos until you return home.</li>
+ 	<li>Do not tag your home, school, or workplace.</li>
+ 	<li>Use general captions instead of specific personal info.</li>
+ 	<li>Blur or cover faces or names of children and other people.</li>
+</ul>
+<h4></h4>
+<h4>Why it matters:</h4>
+<ul>
+ 	<li>Criminals, scammers, or stalkers can collect this data.</li>
+ 	<li>Oversharing makes it easier for someone to pretend to be you (identity theft).</li>
+ 	<li>It can impact your safety or the safety of your loved ones.</li>
+</ul>
+<strong>Tip:</strong> Before posting, ask: Would I say this to a stranger? If not, do not post it.
+
+&nbsp;
+
+<img style="float: left;" title="8.2 Unit 2 - Basic Safety Principles 2" src="http://thebridgeproject.eu/wp-content/uploads/8.2-Unit-2-Basic-Safety-Principles-2.webp" alt="" width="425" height="239" /><img style="float: right;" title="8.2 Unit 2 - Basic Safety Principles 3" src="http://thebridgeproject.eu/wp-content/uploads/8.2-Unit-2-Basic-Safety-Principles-3.webp" alt="" width="425" height="239" />
+
+&nbsp;
+
+&nbsp;
+
+&nbsp;
+
+&nbsp;
+
+&nbsp;
+
+&nbsp;
+
+&nbsp;
+
+&nbsp;
+
+&nbsp;
+<h2>Gamification Activity</h2>
+<h3>Activity Title: Crossword</h3>
+Use the clues to fill in the crossword puzzle with the correct words. Each word is connected to protecting your personal information and using social media responsibly.
+
+[h5p id="21"]]]></target><tool:extradata unit="Body" type="text" group="Main Content" group_id="Main_Content-0"/></trans-unit></body></file></xliff>
