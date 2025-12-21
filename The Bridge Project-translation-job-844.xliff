@@ -1,0 +1,352 @@
+<?xml version="1.0" encoding="utf-8" standalone="no"?>
+<xliff xmlns="urn:oasis:names:tc:xliff:document:1.2" version="1.2" xmlns:tool="https://cdn.wpml.org/xliff/custom-attributes.xsd"><file original="844-44d779b8d7b67b633954a6d63b454cc7" source-language="en" target-language="cs" tool:source-language-domain="https://thebridgeproject.eu" tool:target-language-domain="https://thebridgeproject.eu" tool:sender-id="9" tool:sender-username="cypruscomputersociety" tool:sender-email="vhconsult306@gmail.com" tool:sender-display-name="Bridge Project" tool:wpml-words-to-translate-count="1685" tool:wpml-automatic-translation-costs="0" datatype="plaintext"><header><phase-group><phase phase-name="shortcodes" process-name="Shortcodes identification"><note>wp_caption,caption,gallery,playlist,audio,video,embed,wpml_language_form_field,embedpress_calendar,embed_oembed_html,embedpress,embedpress_pdf,embedpress_doc,stm_lms_courses_grid_display,stm_courses_searchbox,stm_lms_single_course_carousel,stm_lms_instructors_carousel,stm_lms_courses_grid,stm_lms_courses_carousel,stm_lms_recent_courses,stm_lms_courses_categories,stm_lms_featured_teacher,masterstudy_authorization_form,masterstudy_instructor_registration,masterstudy_membership_pricing,presto_player_chapter,presto_playlist_item,presto_player_overlay,presto_player_track,presto_player,presto_timestamp,pptime,presto_playlist,presto_popup,rank_math_seo_score,wpml_language_switcher,wpml_language_selector_widget,wpml_language_selector_footer,wpml-string,h5p,stm_lms_certificate_checker,solid_posts,solid_posts_views,solid_posts_views_raw,solid_posts_time,solid_posts_time_raw,solid_posts_avg_time,solid_posts_avg_time_raw,solid_posts_read_time,solid_posts_read_time_raw,solid_posts_likes,solid_posts_likes_raw,rank_math_rich_snippet,rank_math_review_snippet,elementor-element,elementor-template,onetap_accessibility,iawp_view_counter,zynith-breadcrumbs,obfuscate,rank_math_breadcrumb,call_to_action,newsletter,tours_shortcode,cta_button,woocommerce_thankyou,woocommerce_shop,table,custom_profile,symple_heading,row,tagcloud,sform,nano,add_eventon_list,che,era,essa,nel,gli,per,come,anima,ella,quel,show_gd_mylist_btn,su_spoiler,email,vul,wpv-view,wpv-post-field,accordion_item,citation,foogallery,user-submitted-posts,chronologie,adresse,get_unit_label,get_reference_label,woocommerce_api_manager_lost_api_key,wp-knowledgebase,testimonials_slider,rpwe,posts,nowotworu,intima-media,dostarcza,standaryzowany,jako,czarny,ekstrakt,kwas,std,dwuwodzian,stm_icon_box,ess_grid,rev_slider,linkview,dropcap,permalinklist,testimonial_slider,woocommerce_software_lost_license,text-blocks,wp_sitemap_page,wcmp_vendor,vendor_registration,efsrow,efscolumn,efsbutton,md_rev_slider,md_live_text,md_imagebox_full,flagallery,pbr_quicklinksmenu,rev_slider_vc,opalhotel_reservation_form,pbr_title_heading,pbr_testimonials,embedyt,yith_wcwl_wishlist,wcm_content_restricted,feature_box,woocommerce_en_check,wc_box,wc_row,wc_column,wc_fullwidth,wc_center,wp_social_sharing,infoboxes,testimonials,woocommerce_social_media_share_buttons,wcv_vendor_dashboard,wcv_shop_settings,wcv_orders,inplayer,useyourdrive,wp_blog_designer,us_blog,tt_address,tt_dashboard,envira-gallery,hotspotitem,woocommerce_klarna_checkout,wpml_mailto,contact-field,ux_banner,advanced_iframe,siteorigin_widget,ec_store,simpay_payment_receipt,su-mensaje,borlabs_cookie,contact_info,stm_boats_video,packages_orderdata,yith_ywraq_request_quote,woocommerce_pay,button,supsystic-tables,clean-login,pdf-embedder,insertgenerator,youzer_register,wysija_form,customer-area,customer-area-dashboard,customer-area-private-files-home,customer-area-private-files,customer-account-home,customer-area-account,customer-area-logout,bookly-form,bookly-cancellation-confirmation,stm_classic_filter,popup_trigger,mainwp_archived_lists,wcv_vendorslist,dotpay_content,formularz,cyberactive_school_courses_selection_form,cyberactive_school_session_timeout,ditty_news_ticker,donationcampaign,das-list-events,event_embed,sectiontitle,learn_press_profile,ticket-submit,tickets,aanduiding,datum,thim-icon-box,ngg_images,wpdomainchecker,visualizer,mk_page_section,rssreviews,animate_this,simple-sitemap,gravityform,stm_tech_info,fep_submission_form,ucaddon_diagonal_event_box,wcv_feedback_form,newsletters_management,wcv_pro_dashboard,tm_pb_section,wwof_product_listing,res_map,jssupportticket,socialbar,socialbar_service,front-end-pm,stm_sidebar,give_receipt,donation_history,simpay_error,tm_pb_contact_field,jwp,woocommerce_checkout,mk_custom_list,sg_popup,icon,extra_wrap,frontier-post,invierno,appbox,highlight,ci_alert,vc_mad_products,dt_list,geoip-continent,geoip-country,geoip-region,geoip-city,geoip-postalcode,geoip-latitude,geoip-longitude,geoip-location,woocommerce_notices,post-timeline,private-message,ga_optout,manage_serial_key_usage,ut_header,site_name,bfname,order_id,menu-country,menu-prefer,accordion-item,mini-icon,gvlogic,stm_gmap,contact-form,iconbox,woocommerce_my_account,super_form,wpdm-all-packages,photoblocks,et_pb_map_pin,ginger_reset_cookie,su_divider,fbl_login_button,gmw_single_location,one_full,recent_products,custom_list,endif,jours,wpuf-login,lyte,product_table,wpuf-registration,wpuf_dashboard,amazon,member-pricing-table,rozinky,add_to_cart_url,srizonfbgallery,cl-itext,icon_counter,text_block,vtftable,header_static,bookingcalendar,flexslider,anova-geoip-meta,zp_vc_slideshow_element,zp_scrollto,my_calendar_upcoming,wpv-post-url,fusion_button,su_tab,freeconsultation_technical_forum_link,vc_images_carousel,otgs_logo_url,wpv-conditional,teaser,dt_fancy_image,fusion_tagline_box,contact_us_add,content_box,tagline_box,us_iconbox,fusion_tab,fisicamente,one_half_sidebar,action-btn,invicta_contacts,pricing_price,icon_link,slideshow,vcex_milestone,secondary-demo,vh_pricing_table,category_name,blogurl,q_team,tab_nav_item</note></phase><phase phase-name="post_type" process-name="Post type"><note>post_stm-lessons</note></phase></phase-group><reference><external-file href="https://thebridgeproject.eu/stm-lessons/4-4-unit-4-hybrid-working-and-your-digital-wellbeing/"/></reference></header><body><trans-unit resname="title" restype="string" datatype="html" id="title"><source><![CDATA[4.4 Unit 4 - Hybrid Working and Your Digital Wellbeing]]></source><target><![CDATA[4.4 Unit 4 - Hybrid Working and Your Digital Wellbeing]]></target><tool:extradata unit="Title" type="text" group="Main Content" group_id="Main_Content-0"/></trans-unit><trans-unit resname="body" restype="string" datatype="html" id="body"><source><![CDATA[<h2>Introduction</h2>
+<p>This unit explores how digital wellbeing can be protected and improved in hybrid environments&mdash;where work, study, and daily life increasingly take place across both physical and digital spaces. With more people working or learning remotely or in flexible formats, it&rsquo;s become essential to rethink how we manage screen time, digital boundaries, and recovery time.</p>
+<p>You will gain insights into the specific challenges that hybrid settings can pose. At the same time, this unit highlights practical approaches for promoting healthier habits&mdash;both individually and at the organisational level.</p>
+<p>From understanding what digital wellbeing means in hybrid contexts to exploring the importance of institutional policies and the right to disconnect, this unit provides both reflection and action steps.</p>
+<p>&nbsp;</p>
+<h2>4.1 Digital Wellbeing for Employees</h2>
+<h3>What Is Hybrid Working?</h3>
+<p>Hybrid working is a flexible work model that combines remote and in-office work. Employees split their time between working from home and the office, allowing for greater autonomy and work-life balance. This model has gained prominence due to its potential to enhance productivity and employee satisfaction. <strong><a href="https://clearooms.com/hybrid-working/?utm_source" target="_blank" rel="noopener">[Source]</a></strong></p>
+<p>&nbsp;</p>
+<h3>Benefits of Hybrid Working on Employee Wellbeing</h3>
+<ul>
+<li>A study involving 1,026 UK workers found that 75% felt less stressed and burned out when working from home part of the week. Additionally, 86% appreciated the extra free time gained from avoiding daily commuting, which positively impacted their work-life balance. <strong><a href="https://www.theguardian.com/business/article/2024/jun/16/hybrid-working-makes-employees-happier-healthier-and-more-productive-study-shows" target="_blank" rel="noopener">[Source]</a></strong><br><br></li>
+<li>Hybrid work arrangements have been linked to increased productivity, with 74% of hybrid workers reporting higher productivity levels and 76% feeling more motivated. Furthermore, 85% indicated improved job satisfaction. <strong><a href="https://www.theguardian.com/business/article/2024/jun/16/hybrid-working-makes-employees-happier-healthier-and-more-productive-study-shows" target="_blank" rel="noopener">[Source]</a></strong><br><br></li>
+<li>Employees with hybrid work options report spending more time on sleep, exercise, and personal activities, leading to a healthier work-life balance. For instance, hybrid workers in Great Britain saved an average of 56 minutes daily by not commuting, allowing for more rest and physical activity.</li>
+</ul>
+<p>&nbsp;</p>
+<h3>Challenges and Considerations</h3>
+<ul>
+<li>Approximately 31% of hybrid workers struggle to switch off from work, leading to extended working hours and potential burnout. <strong><a href="https://www.scalable.com/blog/the-impact-of-hybrid-working-on-wellbeing" target="_blank" rel="noopener">[Source]</a></strong><br><br></li>
+<li>Fully remote workers often experience higher levels of loneliness and stress compared to their hybrid counterparts. The lack of in-person interactions can contribute to feelings of isolation and decreased overall wellbeing.<br><br></li>
+<li>Some employees, particularly women, may fear that working remotely could hinder their career progression due to reduced visibility and networking opportunities. <strong><a href="https://www.ft.com/content/d41ab519-a22a-445c-9e1e-3b57880d46a8" target="_blank" rel="noopener">[Source]</a></strong></li>
+</ul>
+<p>To support digital wellbeing in hybrid work environments, organizations can:</p>
+<ul>
+<li>Encourage Regular Breaks: Promote practices like the Pomodoro Technique to help employees manage screen time and reduce digital fatigue.<br><br></li>
+<li>Provide Mental Health Resources: Offer access to digital health tools and Employee Assistance Programs (EAPs) to support mental and emotional wellbeing.<br><br></li>
+<li>Set Clear Boundaries: Establish policies that define work hours and expectations to prevent overwork and ensure employees can disconnect.<br><br></li>
+<li>Foster Social Connections: Organize virtual and in-person events to maintain team cohesion and combat isolation.<br><br></li>
+</ul>
+<h2><img style="display: block;margin-left: auto;margin-right: auto" title="4.4 Unit 4 - Hybrid Working and Your Digital Wellbeing" src="http://thebridgeproject.eu/wp-content/uploads/4.4-Unit-4-Hybrid-Working-and-Your-Digital-Wellbeing.webp?t=1759327269" alt="4.4 Unit 4 - Hybrid Working and Your Digital Wellbeing" width="auto" height="auto"><br><br></h2>
+<h2>&nbsp;</h2>
+<h2>4.2 Institutional Policies for Digital Health</h2>
+<h3>Education Sector: Promoting Digital Wellbeing in Schools</h3>
+<p>Students now spend unprecedented time on devices &ndash; children&rsquo;s screen time jumped by 52% between 2020 and 2022. Research shows that overuse can hinder learning and mental health. For instance, a single phone notification can derail a student&rsquo;s focus for up to 20 minutes. <strong><a href="https://publications.parliament.uk/pa/cm5804/cmselect/cmeduc/118/summary.html" target="_blank" rel="noopener">[Source]</a></strong></p>
+<p>In response, schools are adopting digital wellbeing policies. Many campuses are limiting personal device use &ndash; the UK has introduced a strict mobile phone ban during school hours, noting that keeping phones &ldquo;out of sight and reach&rdquo; benefits students&rsquo; mental health and learning <strong><a href="https://publications.parliament.uk/pa/cm5804/cmselect/cmeduc/118/summary.html#%3A~%3Atext%3DWe%20strongly%20welcome%20the%20Government%E2%80%99s%2Cand%20educational%20outcomes%20of%20children" target="_blank" rel="noopener">[Source]</a></strong>.</p>
+<p>Florida recently banned student cellphones in class, and educators report &ldquo;extraordinarily positive&rdquo; effects on student well- being <strong><a href="https://www.edweek.org/leadership/cellphone-bans-can-ease-students-stress-and-anxiety-educators-say/2023/10" target="_blank" rel="noopener">[Source]</a></strong>.</p>
+<p>Alongside such limits, schools are embedding digital citizenship lessons to instill healthy online habits and boundaries.</p>
+<h3>&nbsp;</h3>
+<h3>Workplace Initiatives for Digital Wellbeing</h3>
+<p>Modern workplaces grapple with the toll of constant connectivity. 75% of employees have felt overwhelmed by after-hours work communications <strong><a href="https://blogs.vorecol.com/blog-the-impact-of-digital-detox-days-on-employee-wellbeing-are-companies-recognizing-the-benefits-204905#%3A~%3Atext%3DIn%20a%20world%20where%20the%2Chuman%20brain%27s%20affinity%20for%20approval" target="_blank" rel="noopener">[Source]</a></strong>, and 74% say this constant digital load has strained their personal relationships <strong><a href="https://tech.co/news/72-senior-leaders-support-right-to-disconnect" target="_blank" rel="noopener">[Source]</a></strong>.</p>
+<p><br>Many organizations now endorse a &ldquo;right to disconnect&rdquo; &ndash; allowing workers to ignore off-duty messages. Countries like France, Spain, and Australia have enacted such rules to curb the always-on culture <strong><a href="https://tech.co/news/72-senior-leaders-support-right-to-disconnect" target="_blank" rel="noopener">[Source]</a></strong>.</p>
+<p>Some companies set internal email curfews; for example, Volkswagen stops routing emails to staff between 6:15 pm and 7 am to protect downtime. Others designate device-free periods or &ldquo;digital detox&rdquo; days &ndash; the tech firm Buffer introduced no-device days, yielding an 82% jump in productivity and a 70% boost in job satisfaction. <strong><a href="https://publications.parliament.uk/pa/cm5804/cmselect/cmeduc/118/summary.html" target="_blank" rel="noopener">[Source]</a></strong></p>
+<p>&nbsp;</p>
+<p><img style="display: block;margin-left: auto;margin-right: auto" title="4.4 Unit 4 - Hybrid Working and Your Digital Wellbeing 2" src="http://thebridgeproject.eu/wp-content/uploads/4.4-Unit-4-Hybrid-Working-and-Your-Digital-Wellbeing-2.webp" alt="" width="auto" height="auto"></p>
+<p>&nbsp;</p>
+<h2>4.3 The Right to Disconnect</h2>
+<p>The right to disconnect refers to employees&rsquo; ability to disengage from work-related digital communication outside their working hours. While there is currently no EU-wide legislation defining this right, the Working Time Directive (2003/88/EC) ensures minimum rest periods to safeguard workers' well-being. <strong><a href="https://www.eurofound.europa.eu/observatories/eurwork/industrial-relations-dictionary/right-to-disconnect" target="_blank" rel="noopener">[Source]</a></strong></p>
+<h3><br>EU Developments</h3>
+<p>On 21 January 2021, the European Parliament passed a resolution supporting a directive that would grant digital workers the right to disconnect and define clearer rules for remote and hybrid work environments.</p>
+<h3><br>National Example: France</h3>
+<p>France was the first EU country to implement a legal right to disconnect in 2017. Companies are required to define specific hours when employees are not expected to engage in work-related digital communication.</p>
+<h3><br>Organisational Practices</h3>
+<p>Even without formal legislation, many companies implement policies that limit after-hours emails or define clear expectations for digital communication, helping reduce the mental load on employees.</p>
+<h3><br>Digital Wellbeing &amp; Mental Health</h3>
+<p>A McKinsey study found that 58% of employees felt hybrid working improved productivity. However, Eurofound (2020) reported that 41% of remote workers experienced more stress and 42% had trouble sleeping, compared to office workers (25% and 29% respectively).</p>
+<p>To effectively implement the Right to Disconnect (R2D), it is essential to go beyond general recommendations and establish a clear, structured framework. The following 10 Guiding Principles offer a comprehensive foundation for translating this right into practice. They address legal, organisational, and ethical dimensions and serve as a roadmap for policymakers, employers, and employees alike. <strong><a href="https://europeanlawinstitute.eu/fileadmin/user_upload/p_eli/Publications/Guiding_Principles_Workers_Right_to_Disconnect.pdf" target="_blank" rel="noopener">[Source]</a></strong></p>
+<p>&nbsp;</p>
+<p><strong><img style="display: block;margin-left: auto;margin-right: auto" title="4.4 Unit 4 - Hybrid Working and Your Digital Wellbeing 3" src="http://thebridgeproject.eu/wp-content/uploads/4.4-Unit-4-Hybrid-Working-and-Your-Digital-Wellbeing-3.webp?t=1759327302" alt="" width="auto" height="auto"><br></strong></p>
+<p>&nbsp;</p>
+<h2>4.3 The Right to Disconnect</h2>
+<p>&nbsp;</p>
+<div>
+<table style="border-collapse: collapse;width: 100%">
+<thead>
+<tr style="background-color: #25ab63;color: #ffffff">
+<th style="border: 1px solid #000;padding: 10px;color: #ffffff">Guiding Principle</th>
+<th style="border: 1px solid #000;padding: 10px;color: #ffffff">Meaning</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="border: 1px solid #000;padding: 5px">1. PURPOSE</td>
+<td style="border: 1px solid #000;padding: 5px">
+<ul style="margin: 0;padding-left: 18px">
+<li>Protection of physical and mental health through guaranteed rest periods.</li>
+<li>Promotion of work-life balance and gender equality.</li>
+</ul>
+</td>
+</tr>
+<tr>
+<td style="border: 1px solid #000;padding: 5px">2. SCOPE</td>
+<td style="border: 1px solid #000;padding: 5px">
+<ul style="margin: 0;padding-left: 18px">
+<li>Applies to all employers and employees &mdash; regardless of contract type or industry.</li>
+<li>Takes precedence over conflicting contract clauses.</li>
+</ul>
+</td>
+</tr>
+<tr>
+<td style="border: 1px solid #000;padding: 5px">3. PREVENTIVE ACTION AND INFORMATION</td>
+<td style="border: 1px solid #000;padding: 5px">
+<ul style="margin: 0;padding-left: 18px">
+<li>Employers must take preventive measures against the &ldquo;always-on&rdquo; culture.</li>
+<li>Regular risk analyses and training to raise awareness.</li>
+</ul>
+</td>
+</tr>
+<tr>
+<td style="border: 1px solid #000;padding: 5px">4. DUTY TO RECONNECT</td>
+<td style="border: 1px solid #000;padding: 5px">
+<ul style="margin: 0;padding-left: 18px">
+<li>Reaction during rest periods only permitted in genuine emergencies.</li>
+<li>Any interruption must be adequately compensated.</li>
+</ul>
+</td>
+</tr>
+<tr>
+<td style="border: 1px solid #000;padding: 5px">5. LEVEL OF REGULATION</td>
+<td style="border: 1px solid #000;padding: 5px">
+<ul style="margin: 0;padding-left: 18px">
+<li>R2D should be legally enshrined.</li>
+<li>Implementation via collective agreements or codes of conduct with the involvement of employees.</li>
+</ul>
+</td>
+</tr>
+<tr>
+<td style="border: 1px solid #000;padding: 5px">6. PROTECTION AGAINST ADVERSE TREATMENT</td>
+<td style="border: 1px solid #000;padding: 5px">
+<ul style="margin: 0;padding-left: 18px">
+<li>No disadvantages for employees who exercise their rights.</li>
+<li>Employers must prove that measures are not based on the R2D.</li>
+</ul>
+</td>
+</tr>
+<tr>
+<td style="border: 1px solid #000;padding: 5px">7. MONITORING AND ENFORCEMENT</td>
+<td style="border: 1px solid #000;padding: 5px">
+<ul style="margin: 0;padding-left: 18px">
+<li>Control by supervisory authorities or trade unions.</li>
+<li>Support for employees in legal proceedings.</li>
+</ul>
+</td>
+</tr>
+<tr>
+<td style="border: 1px solid #000;padding: 5px">8. DATA PROTECTION</td>
+<td style="border: 1px solid #000;padding: 5px">
+<ul style="margin: 0;padding-left: 18px">
+<li>Compliance with data protection laws when collecting R2D-related data.</li>
+<li>Transparency and employee participation.</li>
+</ul>
+</td>
+</tr>
+<tr>
+<td style="border: 1px solid #000;padding: 5px">9. SANCTIONS</td>
+<td style="border: 1px solid #000;padding: 5px">
+<ul style="margin: 0;padding-left: 18px">
+<li>Violations must result in effective, proportionate, and dissuasive sanctions.</li>
+</ul>
+</td>
+</tr>
+<tr>
+<td style="border: 1px solid #000;padding: 5px">10. NON-REGRESSION</td>
+<td style="border: 1px solid #000;padding: 5px">
+<ul style="margin: 0;padding-left: 18px">
+<li>Existing rights must not be restricted by new regulations.</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+<p>&nbsp;</p>
+<h2>4.4 Novel Technologies for Digital Mental Health</h2>
+<p>A wide range of digital technologies have been demonstrated in the World Economic Forum and&nbsp;Deloitte&rsquo;s joint <strong><a href="http://www3.weforum.org/docs/WEF_Global_Governance_Toolkit_for_Digital_Mental_Health_2021.pdf" target="_blank" rel="noopener">&ldquo;Global governance toolkit for digital mental health&rdquo;</a></strong> on the use of information and&nbsp;computer technology in mental health and wellbeing services. The research group of this toolkit&nbsp;examined 190 use scenarios in total, each including more than 10,000 users. As a result, they were able&nbsp;to identify a wide range of strategies, from straightforward instructional websites and mobile&nbsp;applications to electronic mental health records and more sophisticated technology like virtual reality&nbsp;avatars and implanted neurological devices.</p>
+<p><img style="display: block;margin-left: auto;margin-right: auto" title="4.4 Novel Technologies for Digital Mental Health icon widget" src="http://thebridgeproject.eu/wp-content/uploads/4.4-Novel-Technologies-for-Digital-Mental-Health-icon-widget.webp" alt="4.4 Novel Technologies for Digital Mental Health icon widget" width="auto" height="auto"></p>
+<h2>&nbsp;</h2>
+<h2>4.5 Novel Technologies for Digital Mental Health</h2>
+<p>Digital mental health technologies offer innovative approaches to improving mental well-being by <strong>increasing accessibility, personalization, and effectiveness</strong>. They enhance existing treatments and open new paths through tools like big data analytics, brain-machine interfaces, virtual reality, and gamified therapies. These technologies enable earlier intervention by reducing barriers related to time, location, and stigma. Employees can now access support whenever it is convenient, promoting inclusion&mdash;especially in hybrid work settings.</p>
+<p>Digital mental health tools also help <strong>reduce stigma and discrimination</strong>. Individuals often feel more comfortable opening up to anonymous or digital platforms, which encourages early help-seeking behavior. Furthermore, <strong>personalized services are more precise</strong>, as digital platforms can adapt to language, culture, and social contexts, tailoring support to individual needs.</p>
+<p>These technologies empower users by giving them <strong>more control over their mental health, enhancing satisfaction and long-term engagement</strong>. Scientifically developed digital interventions have shown outcomes as effective - or even more effective&mdash;than traditional therapies. They often combine conventional methods with technology-enhanced strategies for better results. Lastly, data-driven tools allow continuous monitoring, enabling ongoing improvements in treatment and supporting clinical research. Overall, digital mental health innovations promise to make mental health services more responsive, inclusive, and effective across various settings.</p>
+<p>The <strong><a href="http://www3.weforum.org/docs/WEF_Global_Governance_Toolkit_for_Digital_Mental_Health_2021.pdf" target="_blank" rel="noopener">&ldquo;Global governance toolkit for digital mental health&rdquo;</a></strong> and its research underline the various benefits of digital mental health and novel technologies which can aid employees in any working model, especially those in hybrid and digital working models. One of the great benefits highlighted for employees through such practices is the increased inclusivity as such digital technologies help reduce stigma and discrimination and they are also more accessible to a wider range of employees. Although inclusivity might not be one of the main triggers for such novel technologies, however, promoting inclusivity is a main principle in the application of such technologies as recommended by the Organisation for Economic Co-operation and Development (OECD) in its <strong><a href="https://legalinstruments.oecd.org/api/print?ids=658&amp;Lang=en" target="_blank" rel="noopener">&ldquo;Recommendation on Responsible Innovation in Neurotechnology&rdquo;</a></strong>.</p>
+<p>&nbsp;</p>
+<h2>Gamification Activity</h2>
+<p><strong>Activity Title:</strong> Balance Builder &ndash; Spot the Hybrid Health Hacks!</p>
+<p><strong>Task: </strong>Explore the hybrid workspace and click on the hotspots to discover healthy digital wellbeing habits.&nbsp;Each spot highlights either a positive practice (a &ldquo;Do&rdquo;) or an area for improvement (a &ldquo;Don&rsquo;t&rdquo;) related to&nbsp;working/studying in hybrid environments.&nbsp;This interactive task helps learners and professionals identify practical tips they can apply immediately&nbsp;to improve posture, reduce screen fatigue, manage distractions, and improve digital self-regulation.</p>
+<p>[h5p id="4"]</p>
+</div>]]></source><target><![CDATA[<h2>Introduction</h2>
+<p>This unit explores how digital wellbeing can be protected and improved in hybrid environments&mdash;where work, study, and daily life increasingly take place across both physical and digital spaces. With more people working or learning remotely or in flexible formats, it&rsquo;s become essential to rethink how we manage screen time, digital boundaries, and recovery time.</p>
+<p>You will gain insights into the specific challenges that hybrid settings can pose. At the same time, this unit highlights practical approaches for promoting healthier habits&mdash;both individually and at the organisational level.</p>
+<p>From understanding what digital wellbeing means in hybrid contexts to exploring the importance of institutional policies and the right to disconnect, this unit provides both reflection and action steps.</p>
+<p>&nbsp;</p>
+<h2>4.1 Digital Wellbeing for Employees</h2>
+<h3>What Is Hybrid Working?</h3>
+<p>Hybrid working is a flexible work model that combines remote and in-office work. Employees split their time between working from home and the office, allowing for greater autonomy and work-life balance. This model has gained prominence due to its potential to enhance productivity and employee satisfaction. <strong><a href="https://clearooms.com/hybrid-working/?utm_source" target="_blank" rel="noopener">[Source]</a></strong></p>
+<p>&nbsp;</p>
+<h3>Benefits of Hybrid Working on Employee Wellbeing</h3>
+<ul>
+<li>A study involving 1,026 UK workers found that 75% felt less stressed and burned out when working from home part of the week. Additionally, 86% appreciated the extra free time gained from avoiding daily commuting, which positively impacted their work-life balance. <strong><a href="https://www.theguardian.com/business/article/2024/jun/16/hybrid-working-makes-employees-happier-healthier-and-more-productive-study-shows" target="_blank" rel="noopener">[Source]</a></strong><br><br></li>
+<li>Hybrid work arrangements have been linked to increased productivity, with 74% of hybrid workers reporting higher productivity levels and 76% feeling more motivated. Furthermore, 85% indicated improved job satisfaction. <strong><a href="https://www.theguardian.com/business/article/2024/jun/16/hybrid-working-makes-employees-happier-healthier-and-more-productive-study-shows" target="_blank" rel="noopener">[Source]</a></strong><br><br></li>
+<li>Employees with hybrid work options report spending more time on sleep, exercise, and personal activities, leading to a healthier work-life balance. For instance, hybrid workers in Great Britain saved an average of 56 minutes daily by not commuting, allowing for more rest and physical activity.</li>
+</ul>
+<p>&nbsp;</p>
+<h3>Challenges and Considerations</h3>
+<ul>
+<li>Approximately 31% of hybrid workers struggle to switch off from work, leading to extended working hours and potential burnout. <strong><a href="https://www.scalable.com/blog/the-impact-of-hybrid-working-on-wellbeing" target="_blank" rel="noopener">[Source]</a></strong><br><br></li>
+<li>Fully remote workers often experience higher levels of loneliness and stress compared to their hybrid counterparts. The lack of in-person interactions can contribute to feelings of isolation and decreased overall wellbeing.<br><br></li>
+<li>Some employees, particularly women, may fear that working remotely could hinder their career progression due to reduced visibility and networking opportunities. <strong><a href="https://www.ft.com/content/d41ab519-a22a-445c-9e1e-3b57880d46a8" target="_blank" rel="noopener">[Source]</a></strong></li>
+</ul>
+<p>To support digital wellbeing in hybrid work environments, organizations can:</p>
+<ul>
+<li>Encourage Regular Breaks: Promote practices like the Pomodoro Technique to help employees manage screen time and reduce digital fatigue.<br><br></li>
+<li>Provide Mental Health Resources: Offer access to digital health tools and Employee Assistance Programs (EAPs) to support mental and emotional wellbeing.<br><br></li>
+<li>Set Clear Boundaries: Establish policies that define work hours and expectations to prevent overwork and ensure employees can disconnect.<br><br></li>
+<li>Foster Social Connections: Organize virtual and in-person events to maintain team cohesion and combat isolation.<br><br></li>
+</ul>
+<h2><img style="display: block;margin-left: auto;margin-right: auto" title="4.4 Unit 4 - Hybrid Working and Your Digital Wellbeing" src="http://thebridgeproject.eu/wp-content/uploads/4.4-Unit-4-Hybrid-Working-and-Your-Digital-Wellbeing.webp?t=1759327269" alt="4.4 Unit 4 - Hybrid Working and Your Digital Wellbeing" width="auto" height="auto"><br><br></h2>
+<h2>&nbsp;</h2>
+<h2>4.2 Institutional Policies for Digital Health</h2>
+<h3>Education Sector: Promoting Digital Wellbeing in Schools</h3>
+<p>Students now spend unprecedented time on devices &ndash; children&rsquo;s screen time jumped by 52% between 2020 and 2022. Research shows that overuse can hinder learning and mental health. For instance, a single phone notification can derail a student&rsquo;s focus for up to 20 minutes. <strong><a href="https://publications.parliament.uk/pa/cm5804/cmselect/cmeduc/118/summary.html" target="_blank" rel="noopener">[Source]</a></strong></p>
+<p>In response, schools are adopting digital wellbeing policies. Many campuses are limiting personal device use &ndash; the UK has introduced a strict mobile phone ban during school hours, noting that keeping phones &ldquo;out of sight and reach&rdquo; benefits students&rsquo; mental health and learning <strong><a href="https://publications.parliament.uk/pa/cm5804/cmselect/cmeduc/118/summary.html#%3A~%3Atext%3DWe%20strongly%20welcome%20the%20Government%E2%80%99s%2Cand%20educational%20outcomes%20of%20children" target="_blank" rel="noopener">[Source]</a></strong>.</p>
+<p>Florida recently banned student cellphones in class, and educators report &ldquo;extraordinarily positive&rdquo; effects on student well- being <strong><a href="https://www.edweek.org/leadership/cellphone-bans-can-ease-students-stress-and-anxiety-educators-say/2023/10" target="_blank" rel="noopener">[Source]</a></strong>.</p>
+<p>Alongside such limits, schools are embedding digital citizenship lessons to instill healthy online habits and boundaries.</p>
+<h3>&nbsp;</h3>
+<h3>Workplace Initiatives for Digital Wellbeing</h3>
+<p>Modern workplaces grapple with the toll of constant connectivity. 75% of employees have felt overwhelmed by after-hours work communications <strong><a href="https://blogs.vorecol.com/blog-the-impact-of-digital-detox-days-on-employee-wellbeing-are-companies-recognizing-the-benefits-204905#%3A~%3Atext%3DIn%20a%20world%20where%20the%2Chuman%20brain%27s%20affinity%20for%20approval" target="_blank" rel="noopener">[Source]</a></strong>, and 74% say this constant digital load has strained their personal relationships <strong><a href="https://tech.co/news/72-senior-leaders-support-right-to-disconnect" target="_blank" rel="noopener">[Source]</a></strong>.</p>
+<p><br>Many organizations now endorse a &ldquo;right to disconnect&rdquo; &ndash; allowing workers to ignore off-duty messages. Countries like France, Spain, and Australia have enacted such rules to curb the always-on culture <strong><a href="https://tech.co/news/72-senior-leaders-support-right-to-disconnect" target="_blank" rel="noopener">[Source]</a></strong>.</p>
+<p>Some companies set internal email curfews; for example, Volkswagen stops routing emails to staff between 6:15 pm and 7 am to protect downtime. Others designate device-free periods or &ldquo;digital detox&rdquo; days &ndash; the tech firm Buffer introduced no-device days, yielding an 82% jump in productivity and a 70% boost in job satisfaction. <strong><a href="https://publications.parliament.uk/pa/cm5804/cmselect/cmeduc/118/summary.html" target="_blank" rel="noopener">[Source]</a></strong></p>
+<p>&nbsp;</p>
+<p><img style="display: block;margin-left: auto;margin-right: auto" title="4.4 Unit 4 - Hybrid Working and Your Digital Wellbeing 2" src="http://thebridgeproject.eu/wp-content/uploads/4.4-Unit-4-Hybrid-Working-and-Your-Digital-Wellbeing-2.webp" alt="" width="auto" height="auto"></p>
+<p>&nbsp;</p>
+<h2>4.3 The Right to Disconnect</h2>
+<p>The right to disconnect refers to employees&rsquo; ability to disengage from work-related digital communication outside their working hours. While there is currently no EU-wide legislation defining this right, the Working Time Directive (2003/88/EC) ensures minimum rest periods to safeguard workers' well-being. <strong><a href="https://www.eurofound.europa.eu/observatories/eurwork/industrial-relations-dictionary/right-to-disconnect" target="_blank" rel="noopener">[Source]</a></strong></p>
+<h3><br>EU Developments</h3>
+<p>On 21 January 2021, the European Parliament passed a resolution supporting a directive that would grant digital workers the right to disconnect and define clearer rules for remote and hybrid work environments.</p>
+<h3><br>National Example: France</h3>
+<p>France was the first EU country to implement a legal right to disconnect in 2017. Companies are required to define specific hours when employees are not expected to engage in work-related digital communication.</p>
+<h3><br>Organisational Practices</h3>
+<p>Even without formal legislation, many companies implement policies that limit after-hours emails or define clear expectations for digital communication, helping reduce the mental load on employees.</p>
+<h3><br>Digital Wellbeing &amp; Mental Health</h3>
+<p>A McKinsey study found that 58% of employees felt hybrid working improved productivity. However, Eurofound (2020) reported that 41% of remote workers experienced more stress and 42% had trouble sleeping, compared to office workers (25% and 29% respectively).</p>
+<p>To effectively implement the Right to Disconnect (R2D), it is essential to go beyond general recommendations and establish a clear, structured framework. The following 10 Guiding Principles offer a comprehensive foundation for translating this right into practice. They address legal, organisational, and ethical dimensions and serve as a roadmap for policymakers, employers, and employees alike. <strong><a href="https://europeanlawinstitute.eu/fileadmin/user_upload/p_eli/Publications/Guiding_Principles_Workers_Right_to_Disconnect.pdf" target="_blank" rel="noopener">[Source]</a></strong></p>
+<p>&nbsp;</p>
+<p><strong><img style="display: block;margin-left: auto;margin-right: auto" title="4.4 Unit 4 - Hybrid Working and Your Digital Wellbeing 3" src="http://thebridgeproject.eu/wp-content/uploads/4.4-Unit-4-Hybrid-Working-and-Your-Digital-Wellbeing-3.webp?t=1759327302" alt="" width="auto" height="auto"><br></strong></p>
+<p>&nbsp;</p>
+<h2>4.3 The Right to Disconnect</h2>
+<p>&nbsp;</p>
+<div>
+<table style="border-collapse: collapse;width: 100%">
+<thead>
+<tr style="background-color: #25ab63;color: #ffffff">
+<th style="border: 1px solid #000;padding: 10px;color: #ffffff">Guiding Principle</th>
+<th style="border: 1px solid #000;padding: 10px;color: #ffffff">Meaning</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="border: 1px solid #000;padding: 5px">1. PURPOSE</td>
+<td style="border: 1px solid #000;padding: 5px">
+<ul style="margin: 0;padding-left: 18px">
+<li>Protection of physical and mental health through guaranteed rest periods.</li>
+<li>Promotion of work-life balance and gender equality.</li>
+</ul>
+</td>
+</tr>
+<tr>
+<td style="border: 1px solid #000;padding: 5px">2. SCOPE</td>
+<td style="border: 1px solid #000;padding: 5px">
+<ul style="margin: 0;padding-left: 18px">
+<li>Applies to all employers and employees &mdash; regardless of contract type or industry.</li>
+<li>Takes precedence over conflicting contract clauses.</li>
+</ul>
+</td>
+</tr>
+<tr>
+<td style="border: 1px solid #000;padding: 5px">3. PREVENTIVE ACTION AND INFORMATION</td>
+<td style="border: 1px solid #000;padding: 5px">
+<ul style="margin: 0;padding-left: 18px">
+<li>Employers must take preventive measures against the &ldquo;always-on&rdquo; culture.</li>
+<li>Regular risk analyses and training to raise awareness.</li>
+</ul>
+</td>
+</tr>
+<tr>
+<td style="border: 1px solid #000;padding: 5px">4. DUTY TO RECONNECT</td>
+<td style="border: 1px solid #000;padding: 5px">
+<ul style="margin: 0;padding-left: 18px">
+<li>Reaction during rest periods only permitted in genuine emergencies.</li>
+<li>Any interruption must be adequately compensated.</li>
+</ul>
+</td>
+</tr>
+<tr>
+<td style="border: 1px solid #000;padding: 5px">5. LEVEL OF REGULATION</td>
+<td style="border: 1px solid #000;padding: 5px">
+<ul style="margin: 0;padding-left: 18px">
+<li>R2D should be legally enshrined.</li>
+<li>Implementation via collective agreements or codes of conduct with the involvement of employees.</li>
+</ul>
+</td>
+</tr>
+<tr>
+<td style="border: 1px solid #000;padding: 5px">6. PROTECTION AGAINST ADVERSE TREATMENT</td>
+<td style="border: 1px solid #000;padding: 5px">
+<ul style="margin: 0;padding-left: 18px">
+<li>No disadvantages for employees who exercise their rights.</li>
+<li>Employers must prove that measures are not based on the R2D.</li>
+</ul>
+</td>
+</tr>
+<tr>
+<td style="border: 1px solid #000;padding: 5px">7. MONITORING AND ENFORCEMENT</td>
+<td style="border: 1px solid #000;padding: 5px">
+<ul style="margin: 0;padding-left: 18px">
+<li>Control by supervisory authorities or trade unions.</li>
+<li>Support for employees in legal proceedings.</li>
+</ul>
+</td>
+</tr>
+<tr>
+<td style="border: 1px solid #000;padding: 5px">8. DATA PROTECTION</td>
+<td style="border: 1px solid #000;padding: 5px">
+<ul style="margin: 0;padding-left: 18px">
+<li>Compliance with data protection laws when collecting R2D-related data.</li>
+<li>Transparency and employee participation.</li>
+</ul>
+</td>
+</tr>
+<tr>
+<td style="border: 1px solid #000;padding: 5px">9. SANCTIONS</td>
+<td style="border: 1px solid #000;padding: 5px">
+<ul style="margin: 0;padding-left: 18px">
+<li>Violations must result in effective, proportionate, and dissuasive sanctions.</li>
+</ul>
+</td>
+</tr>
+<tr>
+<td style="border: 1px solid #000;padding: 5px">10. NON-REGRESSION</td>
+<td style="border: 1px solid #000;padding: 5px">
+<ul style="margin: 0;padding-left: 18px">
+<li>Existing rights must not be restricted by new regulations.</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+<p>&nbsp;</p>
+<h2>4.4 Novel Technologies for Digital Mental Health</h2>
+<p>A wide range of digital technologies have been demonstrated in the World Economic Forum and&nbsp;Deloitte&rsquo;s joint <strong><a href="http://www3.weforum.org/docs/WEF_Global_Governance_Toolkit_for_Digital_Mental_Health_2021.pdf" target="_blank" rel="noopener">&ldquo;Global governance toolkit for digital mental health&rdquo;</a></strong> on the use of information and&nbsp;computer technology in mental health and wellbeing services. The research group of this toolkit&nbsp;examined 190 use scenarios in total, each including more than 10,000 users. As a result, they were able&nbsp;to identify a wide range of strategies, from straightforward instructional websites and mobile&nbsp;applications to electronic mental health records and more sophisticated technology like virtual reality&nbsp;avatars and implanted neurological devices.</p>
+<p><img style="display: block;margin-left: auto;margin-right: auto" title="4.4 Novel Technologies for Digital Mental Health icon widget" src="http://thebridgeproject.eu/wp-content/uploads/4.4-Novel-Technologies-for-Digital-Mental-Health-icon-widget.webp" alt="4.4 Novel Technologies for Digital Mental Health icon widget" width="auto" height="auto"></p>
+<h2>&nbsp;</h2>
+<h2>4.5 Novel Technologies for Digital Mental Health</h2>
+<p>Digital mental health technologies offer innovative approaches to improving mental well-being by <strong>increasing accessibility, personalization, and effectiveness</strong>. They enhance existing treatments and open new paths through tools like big data analytics, brain-machine interfaces, virtual reality, and gamified therapies. These technologies enable earlier intervention by reducing barriers related to time, location, and stigma. Employees can now access support whenever it is convenient, promoting inclusion&mdash;especially in hybrid work settings.</p>
+<p>Digital mental health tools also help <strong>reduce stigma and discrimination</strong>. Individuals often feel more comfortable opening up to anonymous or digital platforms, which encourages early help-seeking behavior. Furthermore, <strong>personalized services are more precise</strong>, as digital platforms can adapt to language, culture, and social contexts, tailoring support to individual needs.</p>
+<p>These technologies empower users by giving them <strong>more control over their mental health, enhancing satisfaction and long-term engagement</strong>. Scientifically developed digital interventions have shown outcomes as effective - or even more effective&mdash;than traditional therapies. They often combine conventional methods with technology-enhanced strategies for better results. Lastly, data-driven tools allow continuous monitoring, enabling ongoing improvements in treatment and supporting clinical research. Overall, digital mental health innovations promise to make mental health services more responsive, inclusive, and effective across various settings.</p>
+<p>The <strong><a href="http://www3.weforum.org/docs/WEF_Global_Governance_Toolkit_for_Digital_Mental_Health_2021.pdf" target="_blank" rel="noopener">&ldquo;Global governance toolkit for digital mental health&rdquo;</a></strong> and its research underline the various benefits of digital mental health and novel technologies which can aid employees in any working model, especially those in hybrid and digital working models. One of the great benefits highlighted for employees through such practices is the increased inclusivity as such digital technologies help reduce stigma and discrimination and they are also more accessible to a wider range of employees. Although inclusivity might not be one of the main triggers for such novel technologies, however, promoting inclusivity is a main principle in the application of such technologies as recommended by the Organisation for Economic Co-operation and Development (OECD) in its <strong><a href="https://legalinstruments.oecd.org/api/print?ids=658&amp;Lang=en" target="_blank" rel="noopener">&ldquo;Recommendation on Responsible Innovation in Neurotechnology&rdquo;</a></strong>.</p>
+<p>&nbsp;</p>
+<h2>Gamification Activity</h2>
+<p><strong>Activity Title:</strong> Balance Builder &ndash; Spot the Hybrid Health Hacks!</p>
+<p><strong>Task: </strong>Explore the hybrid workspace and click on the hotspots to discover healthy digital wellbeing habits.&nbsp;Each spot highlights either a positive practice (a &ldquo;Do&rdquo;) or an area for improvement (a &ldquo;Don&rsquo;t&rdquo;) related to&nbsp;working/studying in hybrid environments.&nbsp;This interactive task helps learners and professionals identify practical tips they can apply immediately&nbsp;to improve posture, reduce screen fatigue, manage distractions, and improve digital self-regulation.</p>
+<p>[h5p id="4"]</p>
+</div>]]></target><tool:extradata unit="Body" type="text" group="Main Content" group_id="Main_Content-0"/></trans-unit></body></file></xliff>
