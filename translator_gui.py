@@ -348,6 +348,7 @@ class TranslatorApp:
                 self.log(f"  [skip] {tu_id}: empty source")
                 continue
             if skip_prefilled and self._should_skip_prefilled(target_text, target_lang):
+                self._log_detected_language(target_text, target_lang, tu_id, note="skip")
                 self.log(f"  [skip] {tu_id}: target already filled and matches {target_lang}")
                 continue
 
@@ -455,8 +456,20 @@ class TranslatorApp:
 
     def _warn_if_lang_mismatch(self, text: str, expected_lang: str, tu_id: str) -> None:
         detected = self._detect_language(text)
-        if detected and detected != expected_lang:
-            self.log(f"  [warn] {tu_id}: detected {detected}, expected {expected_lang}")
+        if detected:
+            self._log_detected_language(text, expected_lang, tu_id, detected=detected)
+            if detected != expected_lang:
+                self.log(f"  [warn] {tu_id}: detected {detected}, expected {expected_lang}")
+
+    def _log_detected_language(
+        self, text: str, expected_lang: str, tu_id: str, note: str = "", detected: Optional[str] = None
+    ) -> None:
+        if not text or not self.langdetect_available:
+            return
+        detected_lang = detected or self._detect_language(text)
+        if detected_lang:
+            suffix = f" ({note})" if note else ""
+            self.log(f"  [lang] {tu_id}: detected {detected_lang}, expected {expected_lang}{suffix}")
 
     def _reset_progress(self, total: int) -> None:
         self.progress_total = total
