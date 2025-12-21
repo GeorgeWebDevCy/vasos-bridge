@@ -281,7 +281,11 @@ class TranslatorApp:
                     target_langs = langs
                 self.log(f"Processing {path.name} for languages: {', '.join(target_langs)}")
                 for target_lang in target_langs:
-                    last_call = self._translate_file(
+                    pending = self._count_units_for_file(file_el, ns, target_lang, skip_prefilled)
+                    if pending == 0:
+                        self.log(f"  [skip-file] {path.name}: nothing to do for {target_lang}")
+                        continue
+                    last_call, translated_any = self._translate_file(
                         client,
                         model,
                         tree,
@@ -294,6 +298,8 @@ class TranslatorApp:
                         min_delay,
                         last_call,
                     )
+                    if not translated_any:
+                        self.log(f"  [skip-file] {path.name}: no translations performed for {target_lang}")
             except Exception as exc:  # noqa: BLE001
                 self.log(f"[ERROR] {path}: {exc}")
 
@@ -312,7 +318,8 @@ class TranslatorApp:
         overwrite: bool,
         min_delay: float,
         last_call: float,
-    ) -> float:
+    ) -> Tuple[float, bool]:
+        translated_any = False
         for tu in _iter_trans_units(file_el, ns):
             tu_id = tu.attrib.get("id", "<no-id>")
             source_el = tu.find("x:source", ns) if ns else tu.find("source")
@@ -350,11 +357,13 @@ class TranslatorApp:
             self.log(f"    response: {translated}")
             self.log(f"  [ok] {tu_id}")
             self._increment_progress()
+            translated_any = True
 
-        output_path = path if overwrite else path.with_name(f"{path.stem}-translated.xliff")
-        _write_xliff(tree, output_path)
-        self.log(f"Saved: {output_path}")
-        return last_call
+        if translated_any:
+            output_path = path if overwrite else path.with_name(f"{path.stem}-translated.xliff")
+            _write_xliff(tree, output_path)
+            self.log(f"Saved: {output_path}")
+        return last_call, translated_any
 
     def _on_done(self, error: Optional[str] = None) -> None:
         if error:
@@ -395,6 +404,20 @@ class TranslatorApp:
                         # Mark as filled so subsequent languages honor skip_prefilled.
                         target_el.text = target_el.text or "<filled>"
         return total
+
+    def _count_units_for_file(self, file_el: ET.Element, ns: Dict[str, str], target_lang: str, skip_prefilled: bool) -> int:
+        pending = 0
+        for tu in _iter_trans_units(file_el, ns):
+            source_el = tu.find("x:source", ns) if ns else tu.find("source")
+            target_el = _ensure_target(tu, ns)
+            source_text = (source_el.text or "").strip() if source_el is not None else ""
+            target_text = (target_el.text or "").strip()
+            if not source_text:
+                continue
+            if skip_prefilled and target_text:
+                continue
+            pending += 1
+        return pending
 
     def _reset_progress(self, total: int) -> None:
         self.progress_total = total
