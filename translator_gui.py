@@ -114,6 +114,8 @@ class TranslatorApp:
         self.root = root
         self.root.title("XLIFF Translator (OpenAI)")
         self.selected_files: List[Path] = []
+        self.progress_total = 0
+        self.progress_done = 0
 
         self.model_var = tk.StringVar(value="gpt-4o-mini")
         self.skip_prefilled_var = tk.BooleanVar(value=True)
@@ -165,11 +167,20 @@ class TranslatorApp:
         self.translate_btn = ttk.Button(frm, text="Translate", command=self.start_translation)
         self.translate_btn.grid(row=4, column=0, sticky="w", pady=6)
 
+        # Progress
+        progress_frame = ttk.Frame(frm)
+        progress_frame.grid(row=5, column=0, columnspan=3, sticky="we", pady=(0, 6))
+        progress_frame.columnconfigure(1, weight=1)
+        self.progress_label = ttk.Label(progress_frame, text="Progress: 0% (0/0)")
+        self.progress_label.grid(row=0, column=0, sticky="w", padx=(0, 8))
+        self.progress_bar = ttk.Progressbar(progress_frame, maximum=1, value=0)
+        self.progress_bar.grid(row=0, column=1, sticky="we")
+
         # Log
-        ttk.Label(frm, text="Log:").grid(row=5, column=0, sticky="w")
+        ttk.Label(frm, text="Log:").grid(row=6, column=0, sticky="w")
         self.log_text = tk.Text(frm, height=12, width=100, state="disabled")
-        self.log_text.grid(row=6, column=0, columnspan=3, sticky="nsew")
-        frm.rowconfigure(6, weight=2)
+        self.log_text.grid(row=7, column=0, columnspan=3, sticky="nsew")
+        frm.rowconfigure(7, weight=2)
 
     def log(self, message: str) -> None:
         self.log_text.configure(state="normal")
@@ -226,6 +237,13 @@ class TranslatorApp:
         overwrite = self.overwrite_var.get()
         rpm = max(1, self.rpm_var.get() or 1)
 
+        total_units = self._count_translation_units(self.selected_files, chosen_langs, skip_prefilled)
+        self._reset_progress(total_units)
+        if total_units == 0:
+            self.translate_btn.config(state="normal")
+            messagebox.showinfo("Nothing to do", "No trans-units require translation based on the current options.")
+            return
+
         self.translate_btn.config(state="disabled")
         thread = threading.Thread(
             target=self._run_translation,
@@ -242,7 +260,7 @@ class TranslatorApp:
         skip_prefilled: bool,
         overwrite: bool,
         rpm: int,
-    ) -> float:
+    ) -> None:
         try:
             client = OpenAI()
         except Exception as exc:  # noqa: BLE001
@@ -294,7 +312,7 @@ class TranslatorApp:
         overwrite: bool,
         min_delay: float,
         last_call: float,
-    ) -> None:
+    ) -> float:
         for tu in _iter_trans_units(file_el, ns):
             tu_id = tu.attrib.get("id", "<no-id>")
             source_el = tu.find("x:source", ns) if ns else tu.find("source")
@@ -322,6 +340,7 @@ class TranslatorApp:
                 last_call = call_started
             except Exception as exc:  # noqa: BLE001
                 self.log(f"  [error] {tu_id}: translation failed: {exc}")
+                self._increment_progress()
                 continue
 
             target_el.text = translated
@@ -330,6 +349,7 @@ class TranslatorApp:
             self.log(f"    user: {user_prompt}")
             self.log(f"    response: {translated}")
             self.log(f"  [ok] {tu_id}")
+            self._increment_progress()
 
         output_path = path if overwrite else path.with_name(f"{path.stem}-translated.xliff")
         _write_xliff(tree, output_path)
@@ -342,6 +362,60 @@ class TranslatorApp:
         else:
             messagebox.showinfo("Done", "Translation finished.")
         self.translate_btn.config(state="normal")
+        if not error and self.progress_total:
+            self._set_progress_complete()
+        else:
+            self._update_progress_label()
+
+    def _count_translation_units(self, files: List[Path], langs: List[str], skip_prefilled: bool) -> int:
+        total = 0
+        for path in files:
+            try:
+                tree, file_el, ns = _load_xliff(path)
+            except Exception as exc:  # noqa: BLE001
+                self.log(f"[count-error] {path}: {exc}")
+                continue
+            target_language = file_el.attrib.get("target-language", "")
+            if target_language and target_language not in langs:
+                target_langs = [target_language]
+            else:
+                target_langs = langs
+            for target_lang in target_langs:
+                for tu in _iter_trans_units(file_el, ns):
+                    source_el = tu.find("x:source", ns) if ns else tu.find("source")
+                    target_el = _ensure_target(tu, ns)
+                    source_text = (source_el.text or "").strip() if source_el is not None else ""
+                    target_text = (target_el.text or "").strip()
+                    if not source_text:
+                        continue
+                    if skip_prefilled and target_text:
+                        continue
+                    total += 1
+                    if skip_prefilled:
+                        # Mark as filled so subsequent languages honor skip_prefilled.
+                        target_el.text = target_el.text or "<filled>"
+        return total
+
+    def _reset_progress(self, total: int) -> None:
+        self.progress_total = total
+        self.progress_done = 0
+        self.progress_bar.configure(maximum=max(total, 1), value=0)
+        self._update_progress_label()
+
+    def _increment_progress(self, step: int = 1) -> None:
+        self.progress_done = min(self.progress_done + step, self.progress_total or self.progress_done + step)
+        self.progress_bar.configure(value=self.progress_done)
+        self._update_progress_label()
+
+    def _set_progress_complete(self) -> None:
+        self.progress_done = self.progress_total
+        self.progress_bar.configure(value=self.progress_total)
+        self._update_progress_label()
+
+    def _update_progress_label(self) -> None:
+        percent = int((self.progress_done / self.progress_total) * 100) if self.progress_total else 0
+        self.progress_label.configure(text=f"Progress: {percent}% ({self.progress_done}/{self.progress_total})")
+        self.root.update_idletasks()
 
 
 def main() -> None:
