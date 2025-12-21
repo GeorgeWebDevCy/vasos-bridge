@@ -63,6 +63,23 @@ def _load_xliff(path: Path) -> Tuple[ET.ElementTree, ET.Element, Dict[str, str]]
     return tree, file_el, ns
 
 
+def _load_dotenv_key(var_name: str, dotenv_path: Path) -> Optional[str]:
+    if not dotenv_path.exists():
+        return None
+    try:
+        content = dotenv_path.read_text(encoding="utf-8")
+    except OSError:
+        return None
+    for line in content.splitlines():
+        stripped = line.strip()
+        if not stripped or stripped.startswith("#") or "=" not in stripped:
+            continue
+        key, value = stripped.split("=", 1)
+        if key.strip() == var_name:
+            return value.strip().strip('"').strip("'")
+    return None
+
+
 def _write_xliff(tree: ET.ElementTree, output_path: Path) -> None:
     output_path.parent.mkdir(parents=True, exist_ok=True)
     tree.write(output_path, encoding="utf-8", xml_declaration=True)
@@ -190,8 +207,14 @@ class TranslatorApp:
         if OpenAI is None:
             messagebox.showerror("Missing dependency", "Please install the openai package (`pip install openai`).")
             return
+        # Allow reading from .env in the current working directory.
+        env_path = Path.cwd() / ".env"
         if not os.getenv("OPENAI_API_KEY"):
-            messagebox.showerror("Missing OPENAI_API_KEY", "Set the OPENAI_API_KEY environment variable and restart.")
+            dotenv_val = _load_dotenv_key("OPENAI_API_KEY", env_path)
+            if dotenv_val:
+                os.environ["OPENAI_API_KEY"] = dotenv_val
+        if not os.getenv("OPENAI_API_KEY"):
+            messagebox.showerror("Missing OPENAI_API_KEY", "Set OPENAI_API_KEY in your environment or .env file.")
             return
 
         model = self.model_var.get().strip() or "gpt-4o-mini"
