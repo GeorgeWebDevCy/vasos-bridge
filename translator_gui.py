@@ -46,10 +46,13 @@ def _iter_trans_units(file_el: ET.Element, ns: Dict[str, str]) -> Iterable[ET.El
     return file_el.findall(".//x:trans-unit", ns) if ns else file_el.findall(".//trans-unit")
 
 
-def _ensure_target(tu_el: ET.Element) -> ET.Element:
-    target_el = tu_el.find("target")
+def _ensure_target(tu_el: ET.Element, ns: Dict[str, str]) -> ET.Element:
+    target_el = tu_el.find("x:target", ns) if ns else tu_el.find("target")
     if target_el is None:
-        target_el = ET.SubElement(tu_el, "target")
+        if ns and "x" in ns:
+            target_el = ET.SubElement(tu_el, f"{{{ns['x']}}}target")
+        else:
+            target_el = ET.SubElement(tu_el, "target")
     return target_el
 
 
@@ -293,8 +296,8 @@ class TranslatorApp:
     ) -> None:
         for tu in _iter_trans_units(file_el, ns):
             tu_id = tu.attrib.get("id", "<no-id>")
-            source_el = tu.find("source")
-            target_el = _ensure_target(tu)
+            source_el = tu.find("x:source", ns) if ns else tu.find("source")
+            target_el = _ensure_target(tu, ns)
             source_text = (source_el.text or "").strip() if source_el is not None else ""
             target_text = (target_el.text or "").strip()
 
