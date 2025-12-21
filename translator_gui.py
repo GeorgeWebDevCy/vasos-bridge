@@ -90,7 +90,7 @@ def _write_xliff(tree: ET.ElementTree, output_path: Path) -> None:
         handle.write("\n")
 
 
-def _translate_text(client: "OpenAI", model: str, text: str, target_lang: str) -> str:
+def _translate_text(client: "OpenAI", model: str, text: str, target_lang: str) -> Tuple[str, str, str]:
     # Keep prompt tight to reduce latency and preserve markup.
     system_prompt = (
         "You are a translation engine. Translate the user text to the target language while preserving all HTML tags, "
@@ -105,7 +105,8 @@ def _translate_text(client: "OpenAI", model: str, text: str, target_lang: str) -
         ],
         temperature=0,
     )
-    return response.choices[0].message.content.strip()
+    translated = response.choices[0].message.content.strip()
+    return translated, system_prompt, user_prompt
 
 
 class TranslatorApp:
@@ -315,13 +316,19 @@ class TranslatorApp:
                 if wait_for > 0:
                     time.sleep(wait_for)
                 call_started = time.time()
-                translated = _translate_text(client, model, source_text, target_lang)
+                translated, system_prompt, user_prompt = _translate_text(
+                    client, model, source_text, target_lang
+                )
                 last_call = call_started
             except Exception as exc:  # noqa: BLE001
                 self.log(f"  [error] {tu_id}: translation failed: {exc}")
                 continue
 
             target_el.text = translated
+            self.log(f"  [prompt] {tu_id} ➜ {target_lang}")
+            self.log(f"    system: {system_prompt}")
+            self.log(f"    user: {user_prompt}")
+            self.log(f"    response: {translated}")
             self.log(f"  [ok] {tu_id}")
 
         output_path = path if overwrite else path.with_name(f"{path.stem}-translated.xliff")
