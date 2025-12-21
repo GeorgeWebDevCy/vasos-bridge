@@ -30,6 +30,14 @@ try:
 except ImportError:
     OpenAI = None
 
+try:
+    from langdetect import DetectorFactory, LangDetectException, detect
+
+    DetectorFactory.seed = 0  # deterministic detection
+except Exception:  # noqa: BLE001
+    detect = None
+    LangDetectException = Exception
+
 
 SUPPORTED_LANGUAGES = ("ar", "cs", "de", "el", "pl", "uk")
 XLING_NAMESPACE = "urn:oasis:names:tc:xliff:document:1.2"
@@ -122,6 +130,8 @@ class TranslatorApp:
         self.overwrite_var = tk.BooleanVar(value=False)
         self.rpm_var = tk.IntVar(value=120)  # requests per minute throttle
         self.lang_vars: Dict[str, tk.BooleanVar] = {lang: tk.BooleanVar(value=True) for lang in SUPPORTED_LANGUAGES}
+        self.langdetect_available = detect is not None
+        self._langdetect_warned = False
 
         self._build_ui()
 
@@ -222,6 +232,13 @@ class TranslatorApp:
         if OpenAI is None:
             messagebox.showerror("Missing dependency", "Please install the openai package (`pip install openai`).")
             return
+        if self.skip_prefilled_var.get() and not self.langdetect_available and not self._langdetect_warned:
+            messagebox.showwarning(
+                "Language detection unavailable",
+                "Skipping prefilled targets without verifying language because langdetect is not installed "
+                "(pip install langdetect).",
+            )
+            self._langdetect_warned = True
         # Allow reading from .env in the current working directory.
         env_path = Path.cwd() / ".env"
         if not os.getenv("OPENAI_API_KEY"):
@@ -330,8 +347,8 @@ class TranslatorApp:
             if not source_text:
                 self.log(f"  [skip] {tu_id}: empty source")
                 continue
-            if skip_prefilled and target_text:
-                self.log(f"  [skip] {tu_id}: target already filled")
+            if skip_prefilled and self._should_skip_prefilled(target_text, target_lang):
+                self.log(f"  [skip] {tu_id}: target already filled and matches {target_lang}")
                 continue
 
             try:
@@ -351,11 +368,12 @@ class TranslatorApp:
                 continue
 
             target_el.text = translated
-            self.log(f"  [prompt] {tu_id} ➜ {target_lang}")
+            self.log(f"  [prompt] {tu_id} -> {target_lang}")
             self.log(f"    system: {system_prompt}")
             self.log(f"    user: {user_prompt}")
             self.log(f"    response: {translated}")
             self.log(f"  [ok] {tu_id}")
+            self._warn_if_lang_mismatch(translated, target_lang, tu_id)
             self._increment_progress()
             translated_any = True
 
@@ -397,7 +415,7 @@ class TranslatorApp:
                     target_text = (target_el.text or "").strip()
                     if not source_text:
                         continue
-                    if skip_prefilled and target_text:
+                    if skip_prefilled and self._should_skip_prefilled(target_text, target_lang):
                         continue
                     total += 1
                     if skip_prefilled:
@@ -414,10 +432,31 @@ class TranslatorApp:
             target_text = (target_el.text or "").strip()
             if not source_text:
                 continue
-            if skip_prefilled and target_text:
+            if skip_prefilled and self._should_skip_prefilled(target_text, target_lang):
                 continue
             pending += 1
         return pending
+
+    def _detect_language(self, text: str) -> Optional[str]:
+        if not self.langdetect_available or not text.strip():
+            return None
+        try:
+            return detect(text)
+        except LangDetectException:
+            return None
+
+    def _should_skip_prefilled(self, target_text: str, expected_lang: str) -> bool:
+        if not target_text:
+            return False
+        detected = self._detect_language(target_text)
+        if detected is None:
+            return True  # no detector; fallback to legacy behavior
+        return detected == expected_lang
+
+    def _warn_if_lang_mismatch(self, text: str, expected_lang: str, tu_id: str) -> None:
+        detected = self._detect_language(text)
+        if detected and detected != expected_lang:
+            self.log(f"  [warn] {tu_id}: detected {detected}, expected {expected_lang}")
 
     def _reset_progress(self, total: int) -> None:
         self.progress_total = total
