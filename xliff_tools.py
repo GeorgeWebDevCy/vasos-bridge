@@ -30,6 +30,15 @@ DEFAULT_EXPECTED_COUNTS = {
     "uk": 284,
 }
 XLING_NAMESPACE = "urn:oasis:names:tc:xliff:document:1.2"
+WPML_NAMESPACE = "https://cdn.wpml.org/xliff/custom-attributes.xsd"
+
+
+def _register_xliff_namespaces() -> None:
+    ET.register_namespace("", XLING_NAMESPACE)
+    ET.register_namespace("wpml", WPML_NAMESPACE)
+
+
+_register_xliff_namespaces()
 
 
 class ValidationIssue:
@@ -113,7 +122,7 @@ def _emit_xliff(
     output_path: pathlib.Path,
     copy_source: bool,
 ) -> None:
-    xliff_el = ET.Element("xliff", {"version": "1.2", "xmlns": XLING_NAMESPACE})
+    xliff_el = ET.Element(f"{{{XLING_NAMESPACE}}}xliff", {"version": "1.2"})
     file_attrs = {
         "source-language": "en",
         "target-language": target_language,
