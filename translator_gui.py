@@ -41,6 +41,15 @@ except Exception:  # noqa: BLE001
 
 SUPPORTED_LANGUAGES = ("ar", "cs", "de", "el", "pl", "uk")
 XLING_NAMESPACE = "urn:oasis:names:tc:xliff:document:1.2"
+WPML_NAMESPACE = "https://cdn.wpml.org/xliff/custom-attributes.xsd"
+
+
+def _register_xliff_namespaces() -> None:
+    ET.register_namespace("", XLING_NAMESPACE)
+    ET.register_namespace("wpml", WPML_NAMESPACE)
+
+
+_register_xliff_namespaces()
 
 
 def _nsmap(root: ET.Element) -> Dict[str, str]:
@@ -92,6 +101,7 @@ def _load_dotenv_key(var_name: str, dotenv_path: Path) -> Optional[str]:
 
 
 def _write_xliff(tree: ET.ElementTree, output_path: Path) -> None:
+    _register_xliff_namespaces()
     output_path.parent.mkdir(parents=True, exist_ok=True)
     tree.write(output_path, encoding="utf-8", xml_declaration=True)
     with output_path.open("a", encoding="utf-8") as handle:
