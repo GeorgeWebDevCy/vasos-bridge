@@ -125,7 +125,7 @@ class TranslatorApp:
         self.progress_total = 0
         self.progress_done = 0
 
-        self.model_var = tk.StringVar(value="gpt-4o-mini")
+        self.model_var = tk.StringVar(value="gpt-4.1")
         self.skip_prefilled_var = tk.BooleanVar(value=True)
         self.overwrite_var = tk.BooleanVar(value=False)
         self.rpm_var = tk.IntVar(value=120)  # requests per minute throttle
