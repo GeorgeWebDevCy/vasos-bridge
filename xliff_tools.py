@@ -31,6 +31,7 @@ DEFAULT_EXPECTED_COUNTS = {
 }
 XLING_NAMESPACE = "urn:oasis:names:tc:xliff:document:1.2"
 WPML_NAMESPACE = "https://cdn.wpml.org/xliff/custom-attributes.xsd"
+XMLNS_NAMESPACE = "http://www.w3.org/2000/xmlns/"
 
 
 def _register_xliff_namespaces() -> None:
@@ -114,6 +115,13 @@ def _build_trans_unit_id(rel_path: pathlib.Path, idx: int) -> str:
     return f"{normalized}#{idx + 1}"
 
 
+def _write_tree(tree: ET.ElementTree, output_path: pathlib.Path) -> None:
+    output_path.parent.mkdir(parents=True, exist_ok=True)
+    tree.write(output_path, encoding="utf-8", xml_declaration=True)
+    with output_path.open("a", encoding="utf-8") as handle:
+        handle.write("\n")
+
+
 def _emit_xliff(
     original_path: pathlib.Path,
     rel_path: pathlib.Path,
@@ -142,12 +150,63 @@ def _emit_xliff(
         else:
             target_el.text = ""
 
-    output_path.parent.mkdir(parents=True, exist_ok=True)
     tree = ET.ElementTree(xliff_el)
-    tree.write(output_path, encoding="utf-8", xml_declaration=True)
-    # Ensure trailing newline for readability.
-    with output_path.open("a", encoding="utf-8") as handle:
-        handle.write("\n")
+    _write_tree(tree, output_path)
+
+
+def _normalize_wpml_prefixes(tree: ET.ElementTree) -> bool:
+    """Return True when the tree was modified to use the wpml prefix."""
+
+    root = tree.getroot()
+    changed = False
+    xmlns_prefix = f"{{{XMLNS_NAMESPACE}}}"
+
+    for key in list(root.attrib):
+        if not key.startswith(xmlns_prefix):
+            continue
+        prefix = key[len(xmlns_prefix) :]
+        uri = root.attrib[key]
+        if uri == WPML_NAMESPACE and prefix != "wpml":
+            del root.attrib[key]
+            changed = True
+
+    if root.attrib.get(f"{xmlns_prefix}wpml") != WPML_NAMESPACE:
+        root.attrib[f"{xmlns_prefix}wpml"] = WPML_NAMESPACE
+        changed = True
+
+    def _normalize_element(el: ET.Element) -> None:
+        nonlocal changed
+        if el.tag.startswith("{"):
+            uri, local = el.tag[1:].split("}", 1)
+            if uri == WPML_NAMESPACE:
+                normalized_tag = f"{{{WPML_NAMESPACE}}}{local}"
+                if normalized_tag != el.tag:
+                    el.tag = normalized_tag
+                    changed = True
+
+        new_attrib: Dict[str, str] = {}
+        for attr_key, attr_val in el.attrib.items():
+            if attr_key.startswith("{"):
+                uri, local = attr_key[1:].split("}", 1)
+                if uri == WPML_NAMESPACE:
+                    normalized_key = f"{{{WPML_NAMESPACE}}}{local}"
+                    if normalized_key != attr_key:
+                        changed = True
+                    new_attrib[normalized_key] = attr_val
+                else:
+                    new_attrib[attr_key] = attr_val
+            else:
+                new_attrib[attr_key] = attr_val
+
+        if new_attrib != el.attrib:
+            el.attrib.clear()
+            el.attrib.update(new_attrib)
+
+        for child in el:
+            _normalize_element(child)
+
+    _normalize_element(root)
+    return changed
 
 
 def cmd_catalog(args: argparse.Namespace) -> int:
@@ -279,6 +338,26 @@ def cmd_generate(args: argparse.Namespace) -> int:
     return 0
 
 
+def cmd_fix_prefixes(args: argparse.Namespace) -> int:
+    root = pathlib.Path(args.root)
+    files = sorted(_iter_xliff_files(root))
+    modified: List[pathlib.Path] = []
+
+    for path in files:
+        tree = ET.parse(path)
+        if _normalize_wpml_prefixes(tree):
+            _write_tree(tree, path)
+            modified.append(path)
+
+    if modified:
+        print("Updated WPML prefixes in:")
+        for path in modified:
+            print(f"  {path}")
+    else:
+        print("No files required WPML prefix fixes.")
+    return 0
+
+
 def _parse_expectations(expect_args: Sequence[str]) -> Dict[str, int]:
     expectations: Dict[str, int] = {}
     for pair in expect_args:
@@ -359,6 +438,13 @@ def build_parser() -> argparse.ArgumentParser:
         help="Populate targets with source text to aid translation memory tools",
     )
     generate_parser.set_defaults(func=cmd_generate)
+
+    fix_prefixes_parser = subparsers.add_parser(
+        "fix-wpml-prefixes",
+        help="Normalize WPML namespace prefixes to 'wpml' across XLIFF files",
+    )
+    fix_prefixes_parser.add_argument("root", help="Directory to scan for XLIFF files")
+    fix_prefixes_parser.set_defaults(func=cmd_fix_prefixes)
 
     return parser
 
