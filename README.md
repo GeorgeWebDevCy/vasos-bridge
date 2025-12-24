@@ -83,6 +83,13 @@ Run `python translator_gui.py` to open the interface.
 *   Monitor progress and logs in real-time.
 *   Outputs are saved to `translated/` with `-<lang>-translated.xliff` names unless overwrite is enabled.
 
+**Windows executable (GUI):**
+Build a standalone `.exe` using PyInstaller:
+```powershell
+.\build_windows_exe.ps1
+```
+The script creates/uses `.venv` in the repo. The output is `dist\TranslatorGUI.exe`. Place a `.env` file next to the exe (or set `OPENAI_API_KEY`) before running it.
+
 **Using the CLI:**
 Translate a single file (or batch via scripts):
 ```bash

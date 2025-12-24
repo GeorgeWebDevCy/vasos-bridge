@@ -17,6 +17,7 @@ Requirements:
 from __future__ import annotations
 
 import os
+import sys
 import time
 import threading
 import tkinter as tk
@@ -99,6 +100,12 @@ def _load_dotenv_key(var_name: str, dotenv_path: Path) -> Optional[str]:
     return None
 
 
+def _app_root() -> Path:
+    if getattr(sys, "frozen", False):
+        return Path(sys.executable).resolve().parent
+    return Path.cwd()
+
+
 def _write_xliff(tree: ET.ElementTree, output_path: Path) -> None:
     _register_xliff_namespaces()
     output_path.parent.mkdir(parents=True, exist_ok=True)
@@ -133,6 +140,7 @@ class TranslatorApp:
         self.selected_files: List[Path] = []
         self.progress_total = 0
         self.progress_done = 0
+        self.app_root = _app_root()
 
         self.model_var = tk.StringVar(value="gpt-4.1")
         self.skip_prefilled_var = tk.BooleanVar(value=True)
@@ -140,7 +148,7 @@ class TranslatorApp:
         self.rpm_var = tk.IntVar(value=120)  # requests per minute throttle
         self.langdetect_available = detect is not None
         self._langdetect_warned = False
-        self.output_root = Path.cwd() / "translated"
+        self.output_root = self.app_root / "translated"
 
         self._build_ui()
 
@@ -218,7 +226,7 @@ class TranslatorApp:
                 self.files_list.insert("end", str(f))
 
     def load_repo_files(self) -> None:
-        repo_root = Path.cwd()
+        repo_root = self.app_root
         import_root = repo_root / "wpml-import"
         xliffs = sorted(
             p
@@ -249,7 +257,7 @@ class TranslatorApp:
             )
             self._langdetect_warned = True
         # Prefer .env in the current working directory to avoid stale global keys.
-        env_path = Path.cwd() / ".env"
+        env_path = self.app_root / ".env"
         dotenv_val = _load_dotenv_key("OPENAI_API_KEY", env_path)
         if dotenv_val:
             existing = os.getenv("OPENAI_API_KEY")
