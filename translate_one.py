@@ -3,6 +3,8 @@
 Translate a single XLIFF file using OpenAI and write a translated copy.
 
 Defaults to the first .xliff in originals/ when --input is not provided.
+By default, outputs are written under translated/<lang>/.
+Use --languages to translate the same input into multiple languages.
 """
 
 from __future__ import annotations
@@ -23,6 +25,7 @@ except ImportError:
 
 XLING_NAMESPACE = "urn:oasis:names:tc:xliff:document:1.2"
 WPML_NAMESPACE = "https://cdn.wpml.org/xliff/custom-attributes.xsd"
+DEFAULT_LANGUAGES = ("ar", "cs", "de", "el", "pl", "uk")
 
 
 def _register_xliff_namespaces() -> None:
@@ -117,6 +120,38 @@ def _pick_default_input() -> Path:
     return xliffs[0]
 
 
+def _default_output_path(
+    input_path: Path,
+    target_lang: str,
+    output_root: Optional[Path] = None,
+) -> Path:
+    output_root = output_root or (Path.cwd() / "translated")
+    try:
+        rel_path = input_path.relative_to(Path.cwd())
+    except ValueError:
+        rel_path = Path(input_path.name)
+    output_dir = output_root / (target_lang or "unknown") / rel_path.parent
+    output_name = f"{input_path.stem}-translated{input_path.suffix}"
+    return output_dir / output_name
+
+
+def _parse_languages(lang_arg: str) -> List[str]:
+    normalized = lang_arg.strip().lower()
+    if normalized in ("all", "default"):
+        return list(DEFAULT_LANGUAGES)
+    parts = [part.strip().lower() for part in lang_arg.split(",") if part.strip()]
+    if not parts:
+        raise ValueError("No languages specified.")
+    seen = set()
+    ordered: List[str] = []
+    for lang in parts:
+        if lang in seen:
+            continue
+        seen.add(lang)
+        ordered.append(lang)
+    return ordered
+
+
 def _ensure_api_key() -> None:
     # Prefer the repo-local .env to avoid stale global keys.
     dotenv_val = _load_dotenv_key("OPENAI_API_KEY", Path.cwd() / ".env")
@@ -130,13 +165,13 @@ def _ensure_api_key() -> None:
 
 def translate_one(
     input_path: Path,
-    output_path: Path,
+    output_path: Optional[Path],
     target_lang: str,
     model: str,
     rpm: int,
     max_units: int,
     overwrite: bool,
-) -> Tuple[int, int]:
+) -> Tuple[int, int, Path]:
     tree, file_el, ns = _load_xliff(input_path)
     if target_lang:
         file_el.attrib["target-language"] = target_lang
@@ -144,6 +179,8 @@ def translate_one(
         target_lang = file_el.attrib.get("target-language", "").strip()
         if not target_lang:
             raise ValueError("No target-language found in file; provide --lang.")
+    if output_path is None:
+        output_path = _default_output_path(input_path, target_lang)
 
     client = OpenAI()
     min_delay = 60.0 / float(max(1, rpm))
@@ -180,7 +217,7 @@ def translate_one(
         output_path = input_path
 
     _write_xliff(tree, output_path)
-    return translated_count, changed_count
+    return translated_count, changed_count, output_path
 
 
 def build_parser() -> argparse.ArgumentParser:
@@ -193,9 +230,16 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument(
         "--output",
         "-o",
-        help="Output path (defaults to <input-stem>-translated.xliff).",
+        help="Output path (defaults to translated/<lang>/.../<input-stem>-translated.xliff).",
     )
     parser.add_argument("--lang", help="Override the target language in the XLIFF file.")
+    parser.add_argument(
+        "--languages",
+        help=(
+            "Comma-separated languages to translate in one run (e.g., ar,cs,de,el,pl,uk). "
+            "Use 'all' for the default language set."
+        ),
+    )
     parser.add_argument("--model", default="gpt-4.1", help="OpenAI model to use.")
     parser.add_argument("--rpm", type=int, default=120, help="Requests per minute throttle.")
     parser.add_argument(
@@ -207,7 +251,7 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument(
         "--overwrite",
         action="store_true",
-        help="Overwrite the input file instead of writing a -translated copy.",
+        help="Overwrite the input file instead of writing under translated/<lang>/.",
     )
     return parser
 
@@ -231,10 +275,51 @@ def main() -> int:
         print(f"Input file not found: {input_path}", file=sys.stderr)
         return 1
 
-    output_path = Path(args.output) if args.output else input_path.with_name(f"{input_path.stem}-translated.xliff")
+    output_path = Path(args.output) if args.output else None
+    languages: List[str] = []
+    if args.languages:
+        try:
+            languages = _parse_languages(args.languages)
+        except ValueError as exc:
+            print(f"Invalid --languages value: {exc}", file=sys.stderr)
+            return 1
+    if args.lang and languages:
+        print("Use only one of --lang or --languages.", file=sys.stderr)
+        return 1
+    if args.overwrite and languages:
+        print("Cannot use --overwrite when translating multiple languages.", file=sys.stderr)
+        return 1
+    output_root: Optional[Path] = None
+    if languages and output_path is not None:
+        if output_path.suffix.lower() == ".xliff":
+            print("When using --languages, --output must be a directory path.", file=sys.stderr)
+            return 1
+        output_root = output_path
+        output_path = None
+
+    if languages:
+        for lang in languages:
+            try:
+                translated_count, changed_count, out_path = translate_one(
+                    input_path=input_path,
+                    output_path=_default_output_path(input_path, lang, output_root),
+                    target_lang=lang,
+                    model=args.model,
+                    rpm=args.rpm,
+                    max_units=args.max_units,
+                    overwrite=False,
+                )
+            except Exception as exc:  # noqa: BLE001
+                print(f"[{lang}] Translation failed: {exc}", file=sys.stderr)
+                return 1
+            print(f"[{lang}] Translated {translated_count} trans-unit(s) in {input_path}.")
+            if changed_count == 0:
+                print(f"[{lang}] Warning: no targets changed compared to the source text.", file=sys.stderr)
+            print(f"[{lang}] Saved output to {out_path}.")
+        return 0
 
     try:
-        translated_count, changed_count = translate_one(
+        translated_count, changed_count, output_path = translate_one(
             input_path=input_path,
             output_path=output_path,
             target_lang=args.lang or "",

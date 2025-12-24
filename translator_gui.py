@@ -222,8 +222,11 @@ class TranslatorApp:
 
     def load_repo_files(self) -> None:
         repo_root = Path.cwd()
+        import_root = repo_root / "wpml-import"
         xliffs = sorted(
-            p for p in repo_root.rglob("*.xliff") if not p.is_relative_to(self.output_root)
+            p
+            for p in repo_root.rglob("*.xliff")
+            if not p.is_relative_to(self.output_root) and not p.is_relative_to(import_root)
         )
         if not xliffs:
             messagebox.showinfo("No files", f"No .xliff files found under {repo_root}")
