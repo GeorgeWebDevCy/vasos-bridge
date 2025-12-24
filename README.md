@@ -81,12 +81,14 @@ Run `python translator_gui.py` to open the interface.
 *   Choose target languages.
 *   Set options (e.g., skip pre-filled, overwrite).
 *   Monitor progress and logs in real-time.
+*   Outputs are saved to `translated/` with `-<lang>-translated.xliff` names unless overwrite is enabled.
 
 **Using the CLI:**
 Translate a single file (or batch via scripts):
 ```bash
 python translate_one.py --input originals/MyJob.xliff --languages ar,cs,de --model gpt-4o
 ```
+Outputs are saved to `translated/` (flat) with `-<lang>-translated.xliff` suffixes unless you set `--output` or `--overwrite`.
 Key features:
 *   Preserves HTML tags and attributes.
 *   Rate limiting support.
@@ -97,7 +99,7 @@ Key features:
 After translation, organize the files for WPML import. This script matches translated files back to their originals and creates a flat import directory:
 
 ```bash
-python prepare_wpml_import.py --originals originals --translated translated --output translated/wpml-import
+python prepare_wpml_import.py --originals originals --translated translated --output wpml-import
 ```
 
 ## XLIFF structure & Rules

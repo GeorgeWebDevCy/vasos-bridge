@@ -4,7 +4,7 @@ Build a WPML import folder by matching originals to translated outputs.
 
 For each XLIFF in originals/, this script finds a translated file under
 translated/ with the same WPML job id and target-language, then copies it
-into translated/wpml-import/ (flat, no subfolders).
+into wpml-import/ (flat, no subfolders).
 """
 
 from __future__ import annotations
@@ -82,8 +82,8 @@ def build_parser() -> argparse.ArgumentParser:
     )
     parser.add_argument(
         "--output",
-        default="translated/wpml-import",
-        help="Folder to write import-ready XLIFFs (default: translated/wpml-import).",
+        default="wpml-import",
+        help="Folder to write import-ready XLIFFs (default: wpml-import).",
     )
     parser.add_argument(
         "--skip-existing",

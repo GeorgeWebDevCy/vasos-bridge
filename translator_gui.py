@@ -4,9 +4,9 @@ Simple Tkinter GUI to translate XLIFF 1.2 files using OpenAI chat models.
 
 Features:
 * Select one or more XLIFF files.
-* Choose target languages (defaults to ar, cs, de, el, pl, uk).
+* Uses the <file> target-language attribute from each XLIFF file.
 * Optionally skip targets that already have content.
-* Writes translated copies under translated/<lang>/ with a "-translated.xliff" suffix.
+* Writes translated copies under translated/ with a "-<lang>-translated.xliff" suffix.
 
 Requirements:
 * Python 3.9+
@@ -39,7 +39,6 @@ except Exception:  # noqa: BLE001
     LangDetectException = Exception
 
 
-SUPPORTED_LANGUAGES = ("ar", "cs", "de", "el", "pl", "uk")
 XLING_NAMESPACE = "urn:oasis:names:tc:xliff:document:1.2"
 WPML_NAMESPACE = "https://cdn.wpml.org/xliff/custom-attributes.xsd"
 
@@ -139,7 +138,6 @@ class TranslatorApp:
         self.skip_prefilled_var = tk.BooleanVar(value=True)
         self.overwrite_var = tk.BooleanVar(value=False)
         self.rpm_var = tk.IntVar(value=120)  # requests per minute throttle
-        self.lang_vars: Dict[str, tk.BooleanVar] = {lang: tk.BooleanVar(value=True) for lang in SUPPORTED_LANGUAGES}
         self.langdetect_available = detect is not None
         self._langdetect_warned = False
         self.output_root = Path.cwd() / "translated"
@@ -160,11 +158,10 @@ class TranslatorApp:
         ttk.Button(frm, text="Choose files...", command=self.choose_files).grid(row=0, column=2, sticky="e")
         ttk.Button(frm, text="Load all repo .xliff", command=self.load_repo_files).grid(row=0, column=1, sticky="e", padx=(0, 6))
 
-        # Language selection
-        lang_frame = ttk.LabelFrame(frm, text="Target languages")
-        lang_frame.grid(row=2, column=0, columnspan=3, sticky="w", pady=6)
-        for idx, lang in enumerate(SUPPORTED_LANGUAGES):
-            ttk.Checkbutton(lang_frame, text=lang, variable=self.lang_vars[lang]).grid(row=0, column=idx, padx=4, pady=2)
+        ttk.Label(
+            frm,
+            text="Target language: read from each XLIFF file's target-language attribute.",
+        ).grid(row=2, column=0, columnspan=3, sticky="w", pady=6)
 
         # Options
         options_frame = ttk.Frame(frm)
@@ -178,7 +175,7 @@ class TranslatorApp:
         ).grid(row=0, column=2, sticky="w")
         ttk.Checkbutton(
             options_frame,
-            text="Overwrite originals (otherwise saved under translated/<lang>/)",
+            text="Overwrite originals (otherwise saved under translated/)",
             variable=self.overwrite_var,
         ).grid(row=1, column=0, columnspan=2, sticky="w", pady=(4, 0))
         ttk.Label(options_frame, text="Max requests/min:").grid(row=1, column=2, sticky="e", padx=(0, 4))
@@ -241,10 +238,6 @@ class TranslatorApp:
         if not self.selected_files:
             messagebox.showerror("No files", "Please choose at least one XLIFF file.")
             return
-        chosen_langs = [lang for lang, var in self.lang_vars.items() if var.get()]
-        if not chosen_langs:
-            messagebox.showerror("No languages", "Select at least one target language.")
-            return
         if OpenAI is None:
             messagebox.showerror("Missing dependency", "Please install the openai package (`pip install openai`).")
             return
@@ -274,17 +267,20 @@ class TranslatorApp:
         if not overwrite:
             self.log(f"Outputs will be saved under {self.output_root}")
 
-        total_units = self._count_translation_units(self.selected_files, chosen_langs, skip_prefilled)
+        total_units = self._count_translation_units(self.selected_files, skip_prefilled)
         self._reset_progress(total_units)
         if total_units == 0:
             self.translate_btn.config(state="normal")
-            messagebox.showinfo("Nothing to do", "No trans-units require translation based on the current options.")
+            messagebox.showinfo(
+                "Nothing to do",
+                "No trans-units require translation (missing target-language, empty sources, or already filled).",
+            )
             return
 
         self.translate_btn.config(state="disabled")
         thread = threading.Thread(
             target=self._run_translation,
-            args=(self.selected_files, chosen_langs, model, skip_prefilled, overwrite, rpm),
+            args=(self.selected_files, model, skip_prefilled, overwrite, rpm),
             daemon=True,
         )
         thread.start()
@@ -292,7 +288,6 @@ class TranslatorApp:
     def _run_translation(
         self,
         files: List[Path],
-        langs: List[str],
         model: str,
         skip_prefilled: bool,
         overwrite: bool,
@@ -310,60 +305,50 @@ class TranslatorApp:
         for path in files:
             try:
                 _, file_el, _ = _load_xliff(path)
-                target_language = file_el.attrib.get("target-language", "").strip()
-                if target_language:
-                    if target_language in langs:
-                        target_langs = [target_language]
-                    else:
-                        self.log(
-                            f"  [skip-file] {path.name}: target-language '{target_language}' not selected"
-                        )
-                        continue
-                else:
-                    target_langs = langs
-                self.log(f"Processing {path.name} for languages: {', '.join(target_langs)}")
-                for target_lang in target_langs:
-                    try:
-                        tree, file_el, ns = _load_xliff(path)
-                    except Exception as exc:  # noqa: BLE001
-                        self.log(f"[ERROR] {path}: {exc}")
-                        break
-                    file_el.attrib["target-language"] = target_lang
-                    pending = self._count_units_for_file(file_el, ns, target_lang, skip_prefilled)
-                    if pending == 0:
-                        self.log(f"  [skip-file] {path.name}: nothing to do for {target_lang}")
-                        continue
-                    last_call, translated_any = self._translate_file(
-                        client,
-                        model,
-                        tree,
-                        file_el,
-                        ns,
-                        path,
-                        target_lang,
-                        skip_prefilled,
-                        overwrite,
-                        min_delay,
-                        last_call,
-                    )
-                    if not translated_any:
-                        self.log(f"  [skip-file] {path.name}: no translations performed for {target_lang}")
+                target_lang = file_el.attrib.get("target-language", "").strip()
+                if not target_lang:
+                    self.log(f"  [skip-file] {path.name}: missing target-language attribute")
+                    continue
+                self.log(f"Processing {path.name} for target language: {target_lang}")
+                try:
+                    tree, file_el, ns = _load_xliff(path)
+                except Exception as exc:  # noqa: BLE001
+                    self.log(f"[ERROR] {path}: {exc}")
+                    continue
+                file_el.attrib["target-language"] = target_lang
+                pending = self._count_units_for_file(file_el, ns, target_lang, skip_prefilled)
+                if pending == 0:
+                    self.log(f"  [skip-file] {path.name}: nothing to do for {target_lang}")
+                    continue
+                last_call, translated_any = self._translate_file(
+                    client,
+                    model,
+                    tree,
+                    file_el,
+                    ns,
+                    path,
+                    target_lang,
+                    skip_prefilled,
+                    overwrite,
+                    min_delay,
+                    last_call,
+                )
+                if not translated_any:
+                    self.log(f"  [skip-file] {path.name}: no translations performed for {target_lang}")
             except Exception as exc:  # noqa: BLE001
                 self.log(f"[ERROR] {path}: {exc}")
 
         self._on_done()
 
+    def _build_output_name(self, input_path: Path, target_lang: str) -> str:
+        lang_suffix = target_lang or "unknown"
+        return f"{input_path.stem}-{lang_suffix}-translated{input_path.suffix}"
+
     def _get_output_path(self, input_path: Path, target_lang: str, overwrite: bool) -> Path:
         if overwrite:
             return input_path
-        repo_root = Path.cwd()
-        try:
-            rel_path = input_path.relative_to(repo_root)
-        except ValueError:
-            rel_path = Path(input_path.name)
-        output_dir = self.output_root / (target_lang or "unknown") / rel_path.parent
-        output_name = f"{input_path.stem}-translated{input_path.suffix}"
-        return output_dir / output_name
+        output_name = self._build_output_name(input_path, target_lang)
+        return self.output_root / output_name
 
     def _translate_file(
         self,
@@ -439,7 +424,7 @@ class TranslatorApp:
         else:
             self._update_progress_label()
 
-    def _count_translation_units(self, files: List[Path], langs: List[str], skip_prefilled: bool) -> int:
+    def _count_translation_units(self, files: List[Path], skip_prefilled: bool) -> int:
         total = 0
         for path in files:
             try:
@@ -447,28 +432,20 @@ class TranslatorApp:
             except Exception as exc:  # noqa: BLE001
                 self.log(f"[count-error] {path}: {exc}")
                 continue
-            target_language = file_el.attrib.get("target-language", "").strip()
-            if target_language:
-                if target_language in langs:
-                    target_langs = [target_language]
-                else:
+            target_lang = file_el.attrib.get("target-language", "").strip()
+            if not target_lang:
+                self.log(f"[count-skip] {path.name}: missing target-language attribute")
+                continue
+            for tu in _iter_trans_units(file_el, ns):
+                source_el = tu.find("x:source", ns) if ns else tu.find("source")
+                target_el = _ensure_target(tu, ns)
+                source_text = (source_el.text or "").strip() if source_el is not None else ""
+                target_text = (target_el.text or "").strip()
+                if not source_text:
                     continue
-            else:
-                target_langs = langs
-            for target_lang in target_langs:
-                for tu in _iter_trans_units(file_el, ns):
-                    source_el = tu.find("x:source", ns) if ns else tu.find("source")
-                    target_el = _ensure_target(tu, ns)
-                    source_text = (source_el.text or "").strip() if source_el is not None else ""
-                    target_text = (target_el.text or "").strip()
-                    if not source_text:
-                        continue
-                    if skip_prefilled and self._should_skip_prefilled(target_text, target_lang):
-                        continue
-                    total += 1
-                    if skip_prefilled:
-                        # Mark as filled so subsequent languages honor skip_prefilled.
-                        target_el.text = target_el.text or "<filled>"
+                if skip_prefilled and self._should_skip_prefilled(target_text, target_lang):
+                    continue
+                total += 1
         return total
 
     def _count_units_for_file(self, file_el: ET.Element, ns: Dict[str, str], target_lang: str, skip_prefilled: bool) -> int:
