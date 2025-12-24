@@ -6,7 +6,7 @@ Features:
 * Select one or more XLIFF files.
 * Choose target languages (defaults to ar, cs, de, el, pl, uk).
 * Optionally skip targets that already have content.
-* Writes translated copies alongside the originals with a "-translated.xliff" suffix.
+* Writes translated copies under translated/<lang>/ with a "-translated.xliff" suffix.
 
 Requirements:
 * Python 3.9+
@@ -142,6 +142,7 @@ class TranslatorApp:
         self.lang_vars: Dict[str, tk.BooleanVar] = {lang: tk.BooleanVar(value=True) for lang in SUPPORTED_LANGUAGES}
         self.langdetect_available = detect is not None
         self._langdetect_warned = False
+        self.output_root = Path.cwd() / "translated"
 
         self._build_ui()
 
@@ -177,7 +178,7 @@ class TranslatorApp:
         ).grid(row=0, column=2, sticky="w")
         ttk.Checkbutton(
             options_frame,
-            text="Overwrite originals (otherwise -translated.xliff)",
+            text="Overwrite originals (otherwise saved under translated/<lang>/)",
             variable=self.overwrite_var,
         ).grid(row=1, column=0, columnspan=2, sticky="w", pady=(4, 0))
         ttk.Label(options_frame, text="Max requests/min:").grid(row=1, column=2, sticky="e", padx=(0, 4))
@@ -221,7 +222,9 @@ class TranslatorApp:
 
     def load_repo_files(self) -> None:
         repo_root = Path.cwd()
-        xliffs = sorted(repo_root.rglob("*.xliff"))
+        xliffs = sorted(
+            p for p in repo_root.rglob("*.xliff") if not p.is_relative_to(self.output_root)
+        )
         if not xliffs:
             messagebox.showinfo("No files", f"No .xliff files found under {repo_root}")
             return
@@ -265,6 +268,8 @@ class TranslatorApp:
         skip_prefilled = self.skip_prefilled_var.get()
         overwrite = self.overwrite_var.get()
         rpm = max(1, self.rpm_var.get() or 1)
+        if not overwrite:
+            self.log(f"Outputs will be saved under {self.output_root}")
 
         total_units = self._count_translation_units(self.selected_files, chosen_langs, skip_prefilled)
         self._reset_progress(total_units)
@@ -301,15 +306,26 @@ class TranslatorApp:
 
         for path in files:
             try:
-                tree, file_el, ns = _load_xliff(path)
-                target_language = file_el.attrib.get("target-language", "")
-                if target_language and target_language not in langs:
-                    # Respect the file's target language if present.
-                    target_langs = [target_language]
+                _, file_el, _ = _load_xliff(path)
+                target_language = file_el.attrib.get("target-language", "").strip()
+                if target_language:
+                    if target_language in langs:
+                        target_langs = [target_language]
+                    else:
+                        self.log(
+                            f"  [skip-file] {path.name}: target-language '{target_language}' not selected"
+                        )
+                        continue
                 else:
                     target_langs = langs
                 self.log(f"Processing {path.name} for languages: {', '.join(target_langs)}")
                 for target_lang in target_langs:
+                    try:
+                        tree, file_el, ns = _load_xliff(path)
+                    except Exception as exc:  # noqa: BLE001
+                        self.log(f"[ERROR] {path}: {exc}")
+                        break
+                    file_el.attrib["target-language"] = target_lang
                     pending = self._count_units_for_file(file_el, ns, target_lang, skip_prefilled)
                     if pending == 0:
                         self.log(f"  [skip-file] {path.name}: nothing to do for {target_lang}")
@@ -334,6 +350,18 @@ class TranslatorApp:
 
         self._on_done()
 
+    def _get_output_path(self, input_path: Path, target_lang: str, overwrite: bool) -> Path:
+        if overwrite:
+            return input_path
+        repo_root = Path.cwd()
+        try:
+            rel_path = input_path.relative_to(repo_root)
+        except ValueError:
+            rel_path = Path(input_path.name)
+        output_dir = self.output_root / (target_lang or "unknown") / rel_path.parent
+        output_name = f"{input_path.stem}-translated{input_path.suffix}"
+        return output_dir / output_name
+
     def _translate_file(
         self,
         client: "OpenAI",
@@ -349,6 +377,7 @@ class TranslatorApp:
         last_call: float,
     ) -> Tuple[float, bool]:
         translated_any = False
+        file_el.attrib["target-language"] = target_lang
         for tu in _iter_trans_units(file_el, ns):
             tu_id = tu.attrib.get("id", "<no-id>")
             source_el = tu.find("x:source", ns) if ns else tu.find("source")
@@ -391,7 +420,7 @@ class TranslatorApp:
             translated_any = True
 
         if translated_any:
-            output_path = path if overwrite else path.with_name(f"{path.stem}-translated.xliff")
+            output_path = self._get_output_path(path, target_lang, overwrite)
             _write_xliff(tree, output_path)
             self.log(f"Saved: {output_path}")
         return last_call, translated_any
@@ -415,9 +444,12 @@ class TranslatorApp:
             except Exception as exc:  # noqa: BLE001
                 self.log(f"[count-error] {path}: {exc}")
                 continue
-            target_language = file_el.attrib.get("target-language", "")
-            if target_language and target_language not in langs:
-                target_langs = [target_language]
+            target_language = file_el.attrib.get("target-language", "").strip()
+            if target_language:
+                if target_language in langs:
+                    target_langs = [target_language]
+                else:
+                    continue
             else:
                 target_langs = langs
             for target_lang in target_langs:
