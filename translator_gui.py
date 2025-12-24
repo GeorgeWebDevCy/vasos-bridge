@@ -249,12 +249,14 @@ class TranslatorApp:
                 "(pip install langdetect).",
             )
             self._langdetect_warned = True
-        # Allow reading from .env in the current working directory.
+        # Prefer .env in the current working directory to avoid stale global keys.
         env_path = Path.cwd() / ".env"
-        if not os.getenv("OPENAI_API_KEY"):
-            dotenv_val = _load_dotenv_key("OPENAI_API_KEY", env_path)
-            if dotenv_val:
-                os.environ["OPENAI_API_KEY"] = dotenv_val
+        dotenv_val = _load_dotenv_key("OPENAI_API_KEY", env_path)
+        if dotenv_val:
+            existing = os.getenv("OPENAI_API_KEY")
+            if existing and existing != dotenv_val:
+                self.log("Using OPENAI_API_KEY from .env (overriding existing environment value).")
+            os.environ["OPENAI_API_KEY"] = dotenv_val
         if not os.getenv("OPENAI_API_KEY"):
             messagebox.showerror("Missing OPENAI_API_KEY", "Set OPENAI_API_KEY in your environment or .env file.")
             return
