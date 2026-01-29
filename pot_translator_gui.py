@@ -15,6 +15,7 @@ from tkinter import filedialog, messagebox, ttk
 from typing import Dict, List, Optional
 
 import translate_pot
+import duplicate_po_locale
 from translate_pot import DEFAULT_LANGUAGES, OpenAITranslator, translate_pot_template
 
 
@@ -32,6 +33,11 @@ class PotTranslatorApp:
         self.compile_var = tk.BooleanVar(value=True)
         self.dry_run_var = tk.BooleanVar(value=False)
         self.plural_var = tk.StringVar(value="")
+        self.duplicate_source_var = tk.StringVar(value="")
+        self.duplicate_targets_var = tk.StringVar(value="")
+        self.duplicate_output_var = tk.StringVar(value="po")
+        self.duplicate_compile_var = tk.BooleanVar(value=True)
+        self.duplicate_plural_var = tk.StringVar(value="")
         self.progress_total = 0
         self.progress_done = 0
         self._build_ui()
@@ -68,6 +74,32 @@ class PotTranslatorApp:
         ttk.Checkbutton(options, text="Dry run (no OpenAI)", variable=self.dry_run_var).grid(row=2, column=3, sticky="w", pady=(6, 0))
         ttk.Label(options, text="Plural overrides (lang=expr, comma-separated):").grid(row=3, column=0, columnspan=3, sticky="w", pady=(6, 0))
         ttk.Entry(options, textvariable=self.plural_var, width=60).grid(row=4, column=0, columnspan=4, sticky="we")
+
+        dup_frame = ttk.LabelFrame(frm, text="Duplicate existing .po bundles", padding=8)
+        dup_frame.grid(row=4, column=0, columnspan=3, sticky="we", pady=8)
+        dup_frame.columnconfigure(0, weight=1)
+        dup_frame.columnconfigure(1, weight=1)
+        dup_frame.columnconfigure(2, weight=0)
+        dup_frame.columnconfigure(3, weight=0)
+
+        ttk.Label(dup_frame, text="Source file or directory:").grid(row=0, column=0, columnspan=4, sticky="w")
+        ttk.Entry(dup_frame, textvariable=self.duplicate_source_var, width=60).grid(row=1, column=0, columnspan=2, sticky="we", pady=(2, 4))
+        ttk.Button(dup_frame, text="File...", command=self.choose_duplicate_file).grid(row=1, column=2, padx=(6, 0), sticky="w")
+        ttk.Button(dup_frame, text="Directory...", command=self.choose_duplicate_directory).grid(row=1, column=3, padx=(6, 0), sticky="w")
+        ttk.Label(dup_frame, text="Target locales (comma-separated):").grid(row=2, column=0, columnspan=4, sticky="w", pady=(6, 0))
+        ttk.Entry(dup_frame, textvariable=self.duplicate_targets_var, width=40).grid(row=3, column=0, columnspan=4, sticky="we")
+        ttk.Label(dup_frame, text="Output directory:").grid(row=4, column=0, sticky="w", pady=(6, 0))
+        ttk.Entry(dup_frame, textvariable=self.duplicate_output_var, width=32).grid(row=4, column=1, columnspan=2, sticky="we", padx=(6, 0))
+        ttk.Button(dup_frame, text="Browse", command=self.choose_duplicate_output_dir).grid(row=4, column=3, sticky="e", padx=(6, 0))
+        ttk.Checkbutton(dup_frame, text="Compile .mo", variable=self.duplicate_compile_var).grid(row=5, column=0, sticky="w", pady=(6, 0))
+        ttk.Label(dup_frame, text="Plural overrides (lang=expr, comma-separated):").grid(row=6, column=0, columnspan=4, sticky="w", pady=(6, 0))
+        ttk.Entry(dup_frame, textvariable=self.duplicate_plural_var, width=60).grid(row=7, column=0, columnspan=4, sticky="we")
+        self.duplicate_btn = ttk.Button(
+            dup_frame,
+            text="Duplicate .po bundles",
+            command=self.start_duplication,
+        )
+        self.duplicate_btn.grid(row=8, column=0, columnspan=4, sticky="w", pady=(6, 0))
 
         self.translate_btn = ttk.Button(frm, text="Translate templates", command=self.start_translation)
         self.translate_btn.grid(row=5, column=0, sticky="w", pady=8)
@@ -111,6 +143,83 @@ class PotTranslatorApp:
         directory = filedialog.askdirectory(title="Output directory", mustexist=False)
         if directory:
             self.output_dir_var.set(directory)
+
+    def choose_duplicate_file(self) -> None:
+        path = filedialog.askopenfilename(
+            title="Select .po file",
+            filetypes=[("Portable Object", "*.po"), ("All files", "*.*")],
+        )
+        if path:
+            self.duplicate_source_var.set(path)
+
+    def choose_duplicate_directory(self) -> None:
+        directory = filedialog.askdirectory(title="Select directory containing .po files", mustexist=True)
+        if directory:
+            self.duplicate_source_var.set(directory)
+
+    def choose_duplicate_output_dir(self) -> None:
+        directory = filedialog.askdirectory(title="Duplicate output directory", mustexist=False)
+        if directory:
+            self.duplicate_output_var.set(directory)
+
+    def start_duplication(self) -> None:
+        source_value = self.duplicate_source_var.get().strip()
+        if not source_value:
+            messagebox.showerror("Source required", "Provide a .po file or directory.")
+            return
+        sources = duplicate_po_locale.collect_po_paths(source_value)
+        if not sources:
+            messagebox.showerror("Source missing", f"No .po files found at {source_value}.")
+            return
+        targets = [token.strip() for token in self.duplicate_targets_var.get().split(",") if token.strip()]
+        if not targets:
+            messagebox.showerror("No targets", "Provide at least one target locale.")
+            return
+        try:
+            plural_overrides = self._parse_plural_overrides(self.duplicate_plural_var.get())
+        except ValueError as exc:
+            messagebox.showerror("Invalid plural overrides", str(exc))
+            return
+        output_dir = Path(self.duplicate_output_var.get() or "po")
+        compile_mo = self.duplicate_compile_var.get()
+        self.duplicate_btn.config(state="disabled")
+        self.log(f"[duplication] {source_value} -> {', '.join(targets)}")
+        thread = threading.Thread(
+            target=self._run_duplication,
+            args=(sources, targets, output_dir, compile_mo, plural_overrides),
+            daemon=True,
+        )
+        thread.start()
+
+    def _run_duplication(
+        self,
+        sources: List[Path],
+        targets: List[str],
+        output_dir: Path,
+        compile_mo: bool,
+        plural_overrides: Dict[str, str],
+    ) -> None:
+        try:
+            results = duplicate_po_locale.duplicate_po_locales(
+                sources=sources,
+                targets=targets,
+                output_root=output_dir,
+                compile_mo=compile_mo,
+                plural_overrides=plural_overrides,
+            )
+        except Exception as exc:  # noqa: BLE001
+            self.log(f"[duplication error] {exc}")
+        else:
+            for res in results:
+                self.log(f"[dup {res.target_locale}] {res.source.name} -> {res.po_path}")
+                if res.mo_path:
+                    self.log(f"  compiled {res.mo_path}")
+        finally:
+            self._on_duplication_done()
+
+    def _on_duplication_done(self) -> None:
+        self.duplicate_btn.config(state="normal")
+        self.log("Duplication run complete.")
 
     def start_translation(self) -> None:
         if not self.selected_files:
