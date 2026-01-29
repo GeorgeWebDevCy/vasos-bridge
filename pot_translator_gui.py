@@ -12,7 +12,7 @@ import threading
 import tkinter as tk
 from pathlib import Path
 from tkinter import filedialog, messagebox, ttk
-from typing import Dict, List, Optional
+from typing import Dict, Iterable, List, Optional
 
 import translate_pot
 import duplicate_po_locale
@@ -57,9 +57,10 @@ class PotTranslatorApp:
 
         ttk.Label(frm, text="Selected .pot files:").grid(row=0, column=0, sticky="w")
         self.files_list = tk.Listbox(frm, height=6, width=90)
-        self.files_list.grid(row=1, column=0, columnspan=3, sticky="nsew", pady=(2, 6))
+        self.files_list.grid(row=1, column=0, columnspan=4, sticky="nsew", pady=(2, 6))
         frm.rowconfigure(1, weight=1)
-        ttk.Button(frm, text="Choose files...", command=self.choose_files).grid(row=0, column=2, sticky="e")
+        ttk.Button(frm, text="Add files...", command=self.choose_files).grid(row=0, column=2, sticky="e")
+        ttk.Button(frm, text="Add directory...", command=self.add_directory).grid(row=0, column=3, sticky="e", padx=(6, 0))
         ttk.Button(frm, text="Clear selection", command=self.clear_selection).grid(row=0, column=1, sticky="e", padx=(0, 6))
 
         ttk.Label(frm, text="Languages (comma-separated):").grid(row=2, column=0, sticky="w")
@@ -147,10 +148,31 @@ class PotTranslatorApp:
         )
         if not files:
             return
-        self.selected_files = [Path(f) for f in files]
-        self.files_list.delete(0, "end")
-        for path in self.selected_files:
-            self.files_list.insert("end", str(path))
+        self._add_to_selection(Path(f) for f in files)
+
+    def add_directory(self) -> None:
+        directory = filedialog.askdirectory(title="Add directory of .pot files", mustexist=True)
+        if not directory:
+            return
+        pot_paths = sorted(Path(directory).glob("*.pot"))
+        if not pot_paths:
+            messagebox.showinfo("No templates", f"No .pot files found in {directory}.")
+            return
+        self._add_to_selection(pot_paths)
+
+    def _add_to_selection(self, paths: Iterable[Path]) -> None:
+        existing = {path.resolve() for path in self.selected_files}
+        added = False
+        for path in paths:
+            resolved = path.resolve()
+            if resolved in existing:
+                continue
+            self.selected_files.append(resolved)
+            self.files_list.insert("end", str(resolved))
+            existing.add(resolved)
+            added = True
+        if not added:
+            messagebox.showinfo("Already added", "All selected files are already in the list.")
 
     def clear_selection(self) -> None:
         self.selected_files = []

@@ -68,7 +68,7 @@ LANGUAGE_LOCALE_DEFAULTS: Dict[str, str] = {
     "ar": "ar",
     "cs": "cs_CZ",
     "de": "de_DE",
-    "el": "el_GR",
+    "el": "el",
     "pl": "pl_PL",
     "uk": "uk",
 }
