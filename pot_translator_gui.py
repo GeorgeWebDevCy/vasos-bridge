@@ -16,7 +16,12 @@ from typing import Dict, List, Optional
 
 import translate_pot
 import duplicate_po_locale
-from translate_pot import DEFAULT_LANGUAGES, OpenAITranslator, translate_pot_template
+from translate_pot import (
+    DEFAULT_LANGUAGES,
+    OpenAITranslator,
+    resolve_default_context,
+    translate_pot_template,
+)
 
 
 class PotTranslatorApp:
@@ -33,6 +38,8 @@ class PotTranslatorApp:
         self.compile_var = tk.BooleanVar(value=True)
         self.dry_run_var = tk.BooleanVar(value=False)
         self.plural_var = tk.StringVar(value="")
+        self.default_context_var = tk.StringVar(value="")
+        self.ai_comment_var = tk.BooleanVar(value=True)
         self.duplicate_source_var = tk.StringVar(value="")
         self.duplicate_targets_var = tk.StringVar(value="")
         self.duplicate_output_var = tk.StringVar(value="po")
@@ -72,8 +79,18 @@ class PotTranslatorApp:
         ttk.Entry(options, textvariable=self.max_entries_var, width=10).grid(row=2, column=1, sticky="w", pady=(6, 0))
         ttk.Checkbutton(options, text="Compile .mo", variable=self.compile_var).grid(row=2, column=2, sticky="w", pady=(6, 0))
         ttk.Checkbutton(options, text="Dry run (no OpenAI)", variable=self.dry_run_var).grid(row=2, column=3, sticky="w", pady=(6, 0))
-        ttk.Label(options, text="Plural overrides (lang=expr, comma-separated):").grid(row=3, column=0, columnspan=3, sticky="w", pady=(6, 0))
-        ttk.Entry(options, textvariable=self.plural_var, width=60).grid(row=4, column=0, columnspan=4, sticky="we")
+        ttk.Label(options, text="Default context (optional):").grid(row=3, column=0, sticky="w", pady=(6, 0))
+        ttk.Entry(options, textvariable=self.default_context_var, width=40).grid(row=3, column=1, columnspan=3, sticky="we", pady=(6, 0))
+        ttk.Checkbutton(
+            options,
+            text="Tag translations (#. AI-generated)",
+            variable=self.ai_comment_var,
+        ).grid(row=4, column=0, columnspan=4, sticky="w")
+        ttk.Label(
+            options,
+            text="Plural overrides (lang=expr, comma-separated):",
+        ).grid(row=5, column=0, columnspan=3, sticky="w", pady=(6, 0))
+        ttk.Entry(options, textvariable=self.plural_var, width=60).grid(row=6, column=0, columnspan=4, sticky="we")
 
         dup_frame = ttk.LabelFrame(frm, text="Duplicate existing .po bundles", padding=8)
         dup_frame.grid(row=4, column=0, columnspan=3, sticky="we", pady=8)
@@ -260,13 +277,20 @@ class PotTranslatorApp:
             return
         model = self.model_var.get().strip() or "gpt-4.1"
         rpm = max(1, self.rpm_var.get() or 1)
+        default_context = resolve_default_context(self.default_context_var.get(), self.app_root)
         translator = None
         if not dry_run:
             try:
-                translator = OpenAITranslator(model, rpm, log_callback=self._log_openai_request)
+                translator = OpenAITranslator(
+                    model,
+                    rpm,
+                    default_context=default_context,
+                    log_callback=self._log_openai_request,
+                )
             except Exception as exc:
                 messagebox.showerror("OpenAI error", f"Failed to initialize translator: {exc}")
                 return
+        include_ai_comment = self.ai_comment_var.get()
         total_steps = len(self.selected_files) * len(languages)
         self._reset_progress(total_steps)
         self.translate_btn.config(state="disabled")
@@ -281,6 +305,7 @@ class PotTranslatorApp:
                 plural_overrides,
                 translator,
                 dry_run,
+                include_ai_comment,
             ),
             daemon=True,
         )
@@ -296,6 +321,7 @@ class PotTranslatorApp:
         plural_overrides: Dict[str, str],
         translator: Optional[OpenAITranslator],
         dry_run: bool,
+        include_ai_comment: bool,
     ) -> None:
         try:
             for pot_path in files:
@@ -313,6 +339,7 @@ class PotTranslatorApp:
                         compile_mo=compile_mo,
                         max_entries=max_entries,
                         plural_overrides=plural_overrides,
+                        include_ai_comment=include_ai_comment,
                     )
                 except Exception as exc:  # noqa: BLE001
                     self.log(f"[error] {pot_path.name}: {exc}")

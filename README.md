@@ -58,6 +58,8 @@ python translate_pot.py \
   --compile
 ```
 
+You can provide a fallback context for entries that lack `msgctxt` by using `--default-context`, exporting `GPT_TRANSLATOR_CONTEXT`, or adding `default_context = "..."` under `[tool.gpt-po-translator]` in `pyproject.toml`. The CLI option overrides the environment/configured values. Translations are also tagged with `#. AI-generated` by default; pass `--no-ai-comment` when you want to skip that comment.
+
 The CLI writes `po/<locale>/<domain>-<locale>.po` and, when `--compile` is used, companion `.mo` files. It resolves the proper locale suffix for each language (e.g., translating `masterstudy-lms-learning-management-system.pot` to Greek produces `masterstudy-lms-learning-management-system-el_GR.po`), uses the same `OPENAI_API_KEY` as the other tools, throttles requests via `--rpm`, and preserves comments/context while translating placeholders. Use `--max-entries` to limit how many strings are translated per language, `--plural-forms` to override locale plural rules (`lang=expr`), and `--dry-run` to emit header-only `.po` files without calling OpenAI.
 
 #### GUI

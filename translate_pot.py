@@ -23,12 +23,21 @@ from pathlib import Path
 from typing import Callable, Dict, List, Optional, Sequence, Tuple
 
 try:
+    import tomllib
+except ModuleNotFoundError:  # pragma: no cover - optional dependency
+    tomllib = None
+
+try:
     from openai import OpenAI
 except ImportError:  # pragma: no cover - runtime dependency
     OpenAI = None
 
 DEFAULT_LANGUAGES = ("ar", "cs", "de", "el", "pl", "uk")
 DEFAULT_OUTPUT_ROOT = Path("po")
+DEFAULT_CONTEXT_ENV_VAR = "GPT_TRANSLATOR_CONTEXT"
+DEFAULT_CONTEXT_CONFIG_SECTION = "gpt-po-translator"
+DEFAULT_CONTEXT_CONFIG_KEY = "default_context"
+AI_COMMENT_MARKER = "#. AI-generated"
 
 SINGULAR_SYSTEM_PROMPT = (
     "You are a translation engine. Translate the user text into the requested target language while preserving "
@@ -108,6 +117,45 @@ def _load_dotenv_key(var_name: str, dotenv_path: Path) -> Optional[str]:
         if key.strip() == var_name:
             return value.strip().strip('"').strip("'")
     return None
+
+
+def _read_default_context_from_config(root_dir: Path) -> Optional[str]:
+    if tomllib is None:
+        return None
+    pyproject = root_dir / "pyproject.toml"
+    if not pyproject.exists():
+        return None
+    try:
+        raw = pyproject.read_text(encoding="utf-8")
+    except OSError:
+        return None
+    try:
+        data = tomllib.loads(raw)
+    except (ValueError, TypeError):
+        return None
+    tool_section = data.get("tool") if isinstance(data, dict) else None
+    if not isinstance(tool_section, dict):
+        return None
+    config = tool_section.get(DEFAULT_CONTEXT_CONFIG_SECTION)
+    if not isinstance(config, dict):
+        return None
+    value = config.get(DEFAULT_CONTEXT_CONFIG_KEY)
+    if isinstance(value, str) and value.strip():
+        return value.strip()
+    return None
+
+
+def resolve_default_context(cli_value: Optional[str], root_dir: Path) -> Optional[str]:
+    if cli_value:
+        trimmed = cli_value.strip()
+        if trimmed:
+            return trimmed
+    env_value = os.getenv(DEFAULT_CONTEXT_ENV_VAR)
+    if env_value:
+        trimmed = env_value.strip()
+        if trimmed:
+            return trimmed
+    return _read_default_context_from_config(root_dir)
 
 
 def _ensure_api_key() -> None:
@@ -287,12 +335,19 @@ def _plural_setting(lang: str, overrides: Dict[str, str]) -> Tuple[str, int]:
 
 
 class OpenAITranslator:
-    def __init__(self, model: str, rpm: int, log_callback: Optional[LogCallback] = None):
+    def __init__(
+        self,
+        model: str,
+        rpm: int,
+        default_context: Optional[str] = None,
+        log_callback: Optional[LogCallback] = None,
+    ):
         self.model = model
         self.client = OpenAI()
         self.min_delay = 60.0 / max(1, rpm)
         self.last_call = 0.0
         self.log_callback = log_callback
+        self.default_context = default_context.strip() if default_context and default_context.strip() else None
 
     def _throttle(self) -> None:
         now = time.time()
@@ -327,8 +382,9 @@ class OpenAITranslator:
             "Text:",
             entry.msgid,
         ]
-        if entry.msgctxt:
-            components.extend(["Context:", entry.msgctxt])
+        context = self._context_hint(entry)
+        if context:
+            components.extend(["Context:", context])
         if entry.references:
             components.extend(["References:", "; ".join(entry.references)])
         if entry.translator_comments:
@@ -351,8 +407,9 @@ class OpenAITranslator:
             entry.msgid_plural or "",
             f"Expect {nplurals} plural form(s).",
         ]
-        if entry.msgctxt:
-            components.extend(["Context:", entry.msgctxt])
+        context = self._context_hint(entry)
+        if context:
+            components.extend(["Context:", context])
         if entry.references:
             components.extend(["References:", "; ".join(entry.references)])
         if entry.translator_comments:
@@ -360,6 +417,13 @@ class OpenAITranslator:
         user_prompt = "\n\n".join(components)
         payload = self._call(PLURAL_SYSTEM_PROMPT, user_prompt, target_lang, entry_label)
         return _parse_plural_response(payload, nplurals)
+
+    def _context_hint(self, entry: PoEntry) -> Optional[str]:
+        if entry.msgctxt:
+            trimmed = entry.msgctxt.strip()
+            if trimmed:
+                return trimmed
+        return self.default_context
 
 
 def _parse_plural_response(payload: str, nplurals: int) -> List[str]:
@@ -406,12 +470,20 @@ def _entry_label(entry: PoEntry) -> str:
     return label or "<no msgid>"
 
 
+def _ensure_ai_comment(entry: PoEntry) -> None:
+    if any("AI-generated" in comment for comment in entry.raw_comments):
+        return
+    entry.raw_comments.append(AI_COMMENT_MARKER)
+    entry.translator_comments.append("AI-generated")
+
+
 def _translate_entries(
     entries: List[PoEntry],
     translator: Optional[OpenAITranslator],
     target_lang: str,
     nplurals: int,
     max_entries: int,
+    include_ai_comment: bool,
 ) -> Tuple[int, int]:
     translated = 0
     changed = 0
@@ -429,11 +501,15 @@ def _translate_entries(
                 entry.msgstr_plural[idx] = text
             entry.msgstr = forms[0] if forms else ""
             changed += sum(1 for text in forms if text.strip())
+            if include_ai_comment and any(text.strip() for text in forms):
+                _ensure_ai_comment(entry)
         else:
             translation = translator.translate_singular(entry, target_lang, entry_label)
             entry.msgstr = translation
             if translation.strip():
                 changed += 1
+                if include_ai_comment:
+                    _ensure_ai_comment(entry)
         translated += 1
     return translated, changed
 
@@ -502,6 +578,7 @@ def translate_pot_template(
     compile_mo: bool,
     max_entries: int,
     plural_overrides: Dict[str, str],
+    include_ai_comment: bool = True,
 ) -> List[TranslationResult]:
     header, entries = _parse_po(pot_path)
     if header is None:
@@ -517,7 +594,14 @@ def translate_pot_template(
         po_header = copy.deepcopy(header)
         locale = _resolve_locale(lang)
         plural_expr, nplurals = _plural_setting(locale, plural_overrides)
-        translated, changed = _translate_entries(po_entries, translator, locale, nplurals, max_entries)
+        translated, changed = _translate_entries(
+            po_entries,
+            translator,
+            locale,
+            nplurals,
+            max_entries,
+            include_ai_comment,
+        )
         metadata = _parse_metadata_lines(po_header.msgstr or "")
         _update_metadata(metadata, "Language", locale)
         _update_metadata(
@@ -665,6 +749,15 @@ def build_parser() -> argparse.ArgumentParser:
         help="Parse templates and write header-only .po files without calling OpenAI.",
     )
     parser.add_argument(
+        "--default-context",
+        help="Provide a fallback context for entries without msgctxt (overrides GPT_TRANSLATOR_CONTEXT).",
+    )
+    parser.add_argument(
+        "--no-ai-comment",
+        action="store_true",
+        help="Skip tagging AI-generated translations with '#. AI-generated'.",
+    )
+    parser.add_argument(
         "--max-files",
         type=int,
         default=0,
@@ -701,8 +794,14 @@ def main() -> int:
 
     languages = _parse_languages(args.languages)
     plural_overrides = _parse_plural_overrides(args.plural_forms)
-    translator = None if args.dry_run else OpenAITranslator(args.model, args.rpm)
+    default_context = resolve_default_context(args.default_context, Path.cwd())
+    translator = (
+        None
+        if args.dry_run
+        else OpenAITranslator(args.model, args.rpm, default_context=default_context)
+    )
     output_root = Path(args.output_dir)
+    include_ai_comment = not args.no_ai_comment
 
     for pot_path in pot_files:
         try:
@@ -714,6 +813,7 @@ def main() -> int:
                 compile_mo=args.compile,
                 max_entries=args.max_entries,
                 plural_overrides=plural_overrides,
+                include_ai_comment=include_ai_comment,
             )
         except Exception as exc:  # noqa: BLE001
             print(f"Translation failed for {pot_path}: {exc}", file=sys.stderr)
