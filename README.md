@@ -42,6 +42,27 @@ The repository contains several utility scripts:
 *   **`translator_gui.py`**: A desktop GUI for translating files using OpenAI models (GPT-4, etc.).
 *   **`translate_one.py`**: A command-line tool for translating single or multiple files via OpenAI.
 *   **`prepare_wpml_import.py`**: A script to organize translated files for re-import into WPML.
+ *   **`pot_translator_gui.py`**: Tkinter GUI for translating `.pot` templates via OpenAI with live progress, compile controls, plural overrides, and dry-run support.
+ *   **`translate_pot.py`**: Translate gettext `.pot` templates into per-language `.po` files and optionally compile `.mo` binaries.
+
+### Translating gettext templates
+
+#### CLI
+
+To generate `.po`/`.mo` bundles from a gettext `.pot` template, run:
+
+```bash
+python translate_pot.py \
+  --input wp-xliff-translator/includes/plugin-update-checker/languages/plugin-update-checker.pot \
+  --languages ar,cs,de \
+  --compile
+```
+
+The CLI writes `po/<lang>/<domain>-<lang>.po` and, when `--compile` is used, companion `.mo` files. It uses the same `OPENAI_API_KEY` as the other tools, throttles requests via `--rpm`, and preserves comments/context while translating placeholders. Use `--max-entries` to limit how many strings are translated per language, `--plural-forms` to override locale plural rules (`lang=expr`), and `--dry-run` to emit header-only `.po` files without calling OpenAI.
+
+#### GUI
+
+Alternatively, run `python pot_translator_gui.py` to launch a desktop interface. Select one or more `.pot` files, enter a comma-separated list of target languages, choose an output directory (defaults to `po`), optionally enable `.mo` compilation and dry runs, and set plural-form overrides in `lang=expr` form. The GUI also exposes the translation model, requests-per-minute throttle, and per-language entry limits before kicking off the OpenAI batch. Log output and progress appear in real time, and generated `.po`/`.mo` bundles follow the same `po/<lang>/<domain>-<lang>.(po|mo)` pattern.
 
 ## Workflows
 
