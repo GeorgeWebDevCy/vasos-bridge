@@ -55,6 +55,14 @@ PLURAL_FORMS_map = {
 PLURAL_COUNTS = {lang: int(re.search(r"nplurals\s*=\s*(\d+)", expr).group(1)) for lang, expr in PLURAL_FORMS_map.items()}
 DEFAULT_PLURAL_FORMS = "nplurals=2; plural=(n != 1);"
 DEFAULT_NPLURALS = 2
+LANGUAGE_LOCALE_DEFAULTS: Dict[str, str] = {
+    "ar": "ar",
+    "cs": "cs_CZ",
+    "de": "de_DE",
+    "el": "el_GR",
+    "pl": "pl_PL",
+    "uk": "uk",
+}
 
 
 @dataclass
@@ -74,6 +82,7 @@ class PoEntry:
 @dataclass
 class TranslationResult:
     language: str
+    locale: str
     pot_path: Path
     po_path: Path
     mo_path: Optional[Path]
@@ -243,13 +252,32 @@ def _standardize_language(lang: str) -> str:
     return lang.lower()
 
 
+def _resolve_locale(lang: str) -> str:
+    cleaned = lang.replace("-", "_").strip()
+    if not cleaned:
+        return cleaned
+    parts = [part for part in cleaned.split("_") if part]
+    if not parts:
+        return ""
+    base = parts[0].lower()
+    if len(parts) > 1:
+        region = "_".join(part.upper() for part in parts[1:])
+        return f"{base}_{region}"
+    return LANGUAGE_LOCALE_DEFAULTS.get(base, base)
+
+
 def _plural_setting(lang: str, overrides: Dict[str, str]) -> Tuple[str, int]:
     normalized = _standardize_language(lang)
-    if normalized in overrides:
-        expr = overrides[normalized]
-        match = re.search(r"nplurals\s*=\s*(\d+)", expr)
-        return expr, int(match.group(1)) if match else DEFAULT_NPLURALS
-    for candidate in (normalized, normalized.split("_")[0]):
+    candidates = [normalized]
+    base = normalized.split("_")[0]
+    if base not in candidates:
+        candidates.append(base)
+    for candidate in candidates:
+        if candidate in overrides:
+            expr = overrides[candidate]
+            match = re.search(r"nplurals\s*=\s*(\d+)", expr)
+            return expr, int(match.group(1)) if match else DEFAULT_NPLURALS
+    for candidate in candidates:
         if candidate in PLURAL_FORMS_map:
             return PLURAL_FORMS_map[candidate], PLURAL_COUNTS[candidate]
     return DEFAULT_PLURAL_FORMS, DEFAULT_NPLURALS
@@ -464,10 +492,11 @@ def translate_pot_template(
     for lang in languages:
         po_entries = copy.deepcopy(entries)
         po_header = copy.deepcopy(header)
-        plural_expr, nplurals = _plural_setting(lang, plural_overrides)
-        translated, changed = _translate_entries(po_entries, translator, lang, nplurals, max_entries)
+        locale = _resolve_locale(lang)
+        plural_expr, nplurals = _plural_setting(locale, plural_overrides)
+        translated, changed = _translate_entries(po_entries, translator, locale, nplurals, max_entries)
         metadata = _parse_metadata_lines(po_header.msgstr or "")
-        _update_metadata(metadata, "Language", lang)
+        _update_metadata(metadata, "Language", locale)
         _update_metadata(
             metadata,
             "PO-Revision-Date",
@@ -475,8 +504,8 @@ def translate_pot_template(
         )
         _update_metadata(metadata, "Plural-Forms", plural_expr)
         po_header.msgstr = _metadata_to_text(metadata)
-        lang_dir = output_root / lang
-        po_path = lang_dir / f"{domain}-{lang}.po"
+        lang_dir = output_root / locale
+        po_path = lang_dir / f"{domain}-{locale}.po"
         _write_po(po_path, po_header, po_entries, metadata)
         mo_path: Optional[Path] = None
         if compile_mo:
@@ -486,6 +515,7 @@ def translate_pot_template(
         results.append(
             TranslationResult(
                 language=lang,
+                locale=locale,
                 pot_path=pot_path,
                 po_path=po_path,
                 mo_path=mo_path,
@@ -671,10 +701,11 @@ def main() -> int:
         for res in results:
             print(
                 f"[{res.language}] Translated {res.translated_count} strings "
-                f"({res.changed_count} changed) for {pot_path.name}, saved {res.po_path}."
+                f"({res.changed_count} changed) for {pot_path.name}, saved {res.po_path} "
+                f"(locale {res.locale})."
             )
             if args.compile and res.mo_path:
-                print(f"[{res.language}] Compiled {res.mo_path}.")
+                print(f"[{res.language}] Compiled {res.mo_path} (locale {res.locale}).")
     return 0
 
 

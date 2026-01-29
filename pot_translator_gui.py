@@ -216,10 +216,10 @@ class PotTranslatorApp:
                 for res in results:
                     self.log(
                         f"[{res.language}] {pot_path.name}: translated {res.translated_count} str "
-                        f"({res.changed_count} changed), saved {res.po_path}"
+                        f"({res.changed_count} changed), saved {res.po_path} (locale {res.locale})"
                     )
                     if res.mo_path:
-                        self.log(f"  compiled {res.mo_path}")
+                        self.log(f"  compiled {res.mo_path} (locale {res.locale})")
                     self._increment_progress()
         finally:
             self._on_done()

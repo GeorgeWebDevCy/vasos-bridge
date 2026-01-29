@@ -58,11 +58,11 @@ python translate_pot.py \
   --compile
 ```
 
-The CLI writes `po/<lang>/<domain>-<lang>.po` and, when `--compile` is used, companion `.mo` files. It uses the same `OPENAI_API_KEY` as the other tools, throttles requests via `--rpm`, and preserves comments/context while translating placeholders. Use `--max-entries` to limit how many strings are translated per language, `--plural-forms` to override locale plural rules (`lang=expr`), and `--dry-run` to emit header-only `.po` files without calling OpenAI.
+The CLI writes `po/<locale>/<domain>-<locale>.po` and, when `--compile` is used, companion `.mo` files. It resolves the proper locale suffix for each language (e.g., translating `masterstudy-lms-learning-management-system.pot` to Greek produces `masterstudy-lms-learning-management-system-el_GR.po`), uses the same `OPENAI_API_KEY` as the other tools, throttles requests via `--rpm`, and preserves comments/context while translating placeholders. Use `--max-entries` to limit how many strings are translated per language, `--plural-forms` to override locale plural rules (`lang=expr`), and `--dry-run` to emit header-only `.po` files without calling OpenAI.
 
 #### GUI
 
-Alternatively, run `python pot_translator_gui.py` to launch a desktop interface. Select one or more `.pot` files, enter a comma-separated list of target languages, choose an output directory (defaults to `po`), optionally enable `.mo` compilation and dry runs, and set plural-form overrides in `lang=expr` form. The GUI also exposes the translation model, requests-per-minute throttle, and per-language entry limits before kicking off the OpenAI batch. Log output and progress appear in real time, and generated `.po`/`.mo` bundles follow the same `po/<lang>/<domain>-<lang>.(po|mo)` pattern.
+Alternatively, run `python pot_translator_gui.py` to launch a desktop interface. Select one or more `.pot` files, enter a comma-separated list of target languages, choose an output directory (defaults to `po`), optionally enable `.mo` compilation and dry runs, and set plural-form overrides in `lang=expr` form. The GUI also exposes the translation model, requests-per-minute throttle, and per-language entry limits before kicking off the OpenAI batch. Log output and progress appear in real time, and generated `.po`/`.mo` bundles follow the `po/<locale>/<domain>-<locale>.(po|mo)` pattern so the resolved locale (for example, `el_GR`) appears in every filename.
 
 ## Workflows
 
