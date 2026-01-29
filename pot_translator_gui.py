@@ -154,7 +154,7 @@ class PotTranslatorApp:
         translator = None
         if not dry_run:
             try:
-                translator = OpenAITranslator(model, rpm)
+                translator = OpenAITranslator(model, rpm, log_callback=self._log_openai_request)
             except Exception as exc:
                 messagebox.showerror("OpenAI error", f"Failed to initialize translator: {exc}")
                 return
@@ -223,6 +223,22 @@ class PotTranslatorApp:
                     self._increment_progress()
         finally:
             self._on_done()
+
+    def _log_openai_request(
+        self,
+        locale: str,
+        entry_label: str,
+        system_prompt: str,
+        user_prompt: str,
+        response: str,
+    ) -> None:
+        snippet = entry_label.strip().splitlines()[0] if entry_label else "<no msgid>"
+        if len(snippet) > 80:
+            snippet = snippet[:77] + "…"
+        self.log(f"[OpenAI] {locale}: {snippet}")
+        self.log(f"  system: {system_prompt}")
+        self.log(f"  user: {user_prompt}")
+        self.log(f"  response: {response}")
 
     def _parse_plural_overrides(self, text: str) -> Dict[str, str]:
         overrides: Dict[str, str] = {}

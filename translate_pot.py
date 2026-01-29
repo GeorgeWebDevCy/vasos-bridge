@@ -20,7 +20,7 @@ import textwrap
 import time
 from dataclasses import dataclass, field
 from pathlib import Path
-from typing import Dict, List, Optional, Sequence, Tuple
+from typing import Callable, Dict, List, Optional, Sequence, Tuple
 
 try:
     from openai import OpenAI
@@ -63,6 +63,9 @@ LANGUAGE_LOCALE_DEFAULTS: Dict[str, str] = {
     "pl": "pl_PL",
     "uk": "uk",
 }
+
+
+LogCallback = Callable[[str, str, str, str, str], None]
 
 
 @dataclass
@@ -284,11 +287,12 @@ def _plural_setting(lang: str, overrides: Dict[str, str]) -> Tuple[str, int]:
 
 
 class OpenAITranslator:
-    def __init__(self, model: str, rpm: int):
+    def __init__(self, model: str, rpm: int, log_callback: Optional[LogCallback] = None):
         self.model = model
         self.client = OpenAI()
         self.min_delay = 60.0 / max(1, rpm)
         self.last_call = 0.0
+        self.log_callback = log_callback
 
     def _throttle(self) -> None:
         now = time.time()
@@ -297,7 +301,7 @@ class OpenAITranslator:
             time.sleep(wait_for)
         self.last_call = time.time()
 
-    def _call(self, system_prompt: str, user_prompt: str) -> str:
+    def _call(self, system_prompt: str, user_prompt: str, target_lang: str, entry_label: str) -> str:
         self._throttle()
         response = self.client.chat.completions.create(
             model=self.model,
@@ -307,12 +311,16 @@ class OpenAITranslator:
             ],
             temperature=0,
         )
-        return response.choices[0].message.content.strip()
+        result = response.choices[0].message.content.strip()
+        if self.log_callback:
+            self.log_callback(target_lang, entry_label, system_prompt, user_prompt, result)
+        return result
 
     def translate_singular(
         self,
         entry: PoEntry,
         target_lang: str,
+        entry_label: str,
     ) -> str:
         components = [
             f"Target language: {target_lang}",
@@ -326,13 +334,14 @@ class OpenAITranslator:
         if entry.translator_comments:
             components.extend(["Notes:", " ".join(entry.translator_comments)])
         user_prompt = "\n\n".join(components)
-        return self._call(SINGULAR_SYSTEM_PROMPT, user_prompt)
+        return self._call(SINGULAR_SYSTEM_PROMPT, user_prompt, target_lang, entry_label)
 
     def translate_plural(
         self,
         entry: PoEntry,
         target_lang: str,
         nplurals: int,
+        entry_label: str,
     ) -> List[str]:
         components = [
             f"Target language: {target_lang}",
@@ -349,7 +358,7 @@ class OpenAITranslator:
         if entry.translator_comments:
             components.extend(["Notes:", " ".join(entry.translator_comments)])
         user_prompt = "\n\n".join(components)
-        payload = self._call(PLURAL_SYSTEM_PROMPT, user_prompt)
+        payload = self._call(PLURAL_SYSTEM_PROMPT, user_prompt, target_lang, entry_label)
         return _parse_plural_response(payload, nplurals)
 
 
@@ -384,6 +393,19 @@ def _parse_plural_response(payload: str, nplurals: int) -> List[str]:
     return forms[:nplurals]
 
 
+def _entry_label(entry: PoEntry) -> str:
+    if entry.msgid_plural:
+        first = entry.msgid or ""
+        second = entry.msgid_plural or ""
+        label = f"{first} / {second}" if (first or second) else ""
+    else:
+        label = entry.msgid or ""
+    label = label.strip()
+    if not label and entry.msgctxt:
+        label = entry.msgctxt
+    return label or "<no msgid>"
+
+
 def _translate_entries(
     entries: List[PoEntry],
     translator: Optional[OpenAITranslator],
@@ -400,14 +422,15 @@ def _translate_entries(
             continue
         if max_entries and translated >= max_entries:
             break
+        entry_label = _entry_label(entry)
         if entry.msgid_plural:
-            forms = translator.translate_plural(entry, target_lang, nplurals)
+            forms = translator.translate_plural(entry, target_lang, nplurals, entry_label)
             for idx, text in enumerate(forms):
                 entry.msgstr_plural[idx] = text
             entry.msgstr = forms[0] if forms else ""
             changed += sum(1 for text in forms if text.strip())
         else:
-            translation = translator.translate_singular(entry, target_lang)
+            translation = translator.translate_singular(entry, target_lang, entry_label)
             entry.msgstr = translation
             if translation.strip():
                 changed += 1
