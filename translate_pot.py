@@ -38,6 +38,7 @@ DEFAULT_CONTEXT_ENV_VAR = "GPT_TRANSLATOR_CONTEXT"
 DEFAULT_CONTEXT_CONFIG_SECTION = "gpt-po-translator"
 DEFAULT_CONTEXT_CONFIG_KEY = "default_context"
 AI_COMMENT_MARKER = "#. AI-generated"
+PLACEHOLDER_PATTERN = re.compile(r"%\d*\$?[a-zA-Z]")
 
 SINGULAR_SYSTEM_PROMPT = (
     "You are a translation engine. Translate the user text into the requested target language while preserving "
@@ -387,8 +388,9 @@ class OpenAITranslator:
             components.extend(["Context:", context])
         if entry.references:
             components.extend(["References:", "; ".join(entry.references)])
-        if entry.translator_comments:
-            components.extend(["Notes:", " ".join(entry.translator_comments)])
+        notes = _format_translator_notes(entry.translator_comments)
+        if notes:
+            components.extend(["Notes:", notes])
         user_prompt = "\n\n".join(components)
         return self._call(SINGULAR_SYSTEM_PROMPT, user_prompt, target_lang, entry_label)
 
@@ -412,8 +414,9 @@ class OpenAITranslator:
             components.extend(["Context:", context])
         if entry.references:
             components.extend(["References:", "; ".join(entry.references)])
-        if entry.translator_comments:
-            components.extend(["Notes:", " ".join(entry.translator_comments)])
+        notes = _format_translator_notes(entry.translator_comments)
+        if notes:
+            components.extend(["Notes:", notes])
         user_prompt = "\n\n".join(components)
         payload = self._call(PLURAL_SYSTEM_PROMPT, user_prompt, target_lang, entry_label)
         return _parse_plural_response(payload, nplurals)
@@ -468,6 +471,24 @@ def _entry_label(entry: PoEntry) -> str:
     if not label and entry.msgctxt:
         label = entry.msgctxt
     return label or "<no msgid>"
+
+
+def _sanitize_comment_for_prompt(comment: str) -> str:
+    text = comment.replace("\n", " ").strip()
+    if not text:
+        return ""
+    return PLACEHOLDER_PATTERN.sub("placeholder", text)
+
+
+def _format_translator_notes(comments: List[str]) -> Optional[str]:
+    parts: List[str] = []
+    for comment in comments:
+        cleaned = _sanitize_comment_for_prompt(comment)
+        if cleaned:
+            parts.append(cleaned)
+    if not parts:
+        return None
+    return " ".join(parts)
 
 
 def _ensure_ai_comment(entry: PoEntry) -> None:
