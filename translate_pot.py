@@ -38,6 +38,14 @@ DEFAULT_CONTEXT_ENV_VAR = "GPT_TRANSLATOR_CONTEXT"
 DEFAULT_CONTEXT_CONFIG_SECTION = "gpt-po-translator"
 DEFAULT_CONTEXT_CONFIG_KEY = "default_context"
 AI_COMMENT_MARKER = "#. AI-generated"
+REFERENCE_KEYWORDS = (
+    "Αναφορές:",
+    "References:",
+    "Σημειώσεις:",
+    "Notes:",
+    "μεταφραστές:",
+    "Translators:",
+)
 PLACEHOLDER_PATTERN = re.compile(r"%\d*\$?[a-zA-Z]")
 
 SINGULAR_SYSTEM_PROMPT = (
@@ -471,6 +479,44 @@ def _entry_label(entry: PoEntry) -> str:
     if not label and entry.msgctxt:
         label = entry.msgctxt
     return label or "<no msgid>"
+
+
+def _strip_reference_suffix(value: str) -> str:
+    if not value:
+        return value
+    for marker in REFERENCE_KEYWORDS:
+        needle = f"\n\n{marker}"
+        idx = value.find(needle)
+        if idx != -1:
+            return value[:idx].rstrip()
+    return value.rstrip()
+
+
+def clean_po_references(po_path: Path, compile_mo: bool = False) -> Tuple[int, Optional[Path]]:
+    header, entries = _parse_po(po_path)
+    if header is None:
+        header = PoEntry()
+    changed = 0
+    for entry in entries:
+        cleaned_msgstr = _strip_reference_suffix(entry.msgstr)
+        if cleaned_msgstr != entry.msgstr:
+            entry.msgstr = cleaned_msgstr
+            changed += 1
+        for idx, text in list(entry.msgstr_plural.items()):
+            cleaned_plural = _strip_reference_suffix(text)
+            if cleaned_plural != text:
+                entry.msgstr_plural[idx] = cleaned_plural
+                changed += 1
+    if not changed:
+        return 0, None
+    metadata = _parse_metadata_lines(header.msgstr or "")
+    _write_po(po_path, header, entries, metadata)
+    mo_path: Optional[Path] = None
+    if compile_mo:
+        catalog = _build_catalog(entries, header)
+        mo_path = po_path.with_suffix(".mo")
+        _write_mo(catalog, mo_path)
+    return changed, mo_path
 
 
 def _sanitize_comment_for_prompt(comment: str) -> str:

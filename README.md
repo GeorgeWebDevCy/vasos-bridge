@@ -66,6 +66,8 @@ The CLI writes `po/<locale>/<domain>-<locale>.po` and, when `--compile` is used,
 
 Alternatively, run `python pot_translator_gui.py` to launch a desktop interface. Select one or more `.pot` files, enter a comma-separated list of target languages, choose an output directory (defaults to `po`), optionally enable `.mo` compilation and dry runs, and set plural-form overrides in `lang=expr` form. The GUI also exposes the translation model, requests-per-minute throttle, and per-language entry limits before kicking off the OpenAI batch. Log output and progress appear in real time, and generated `.po`/`.mo` bundles follow the `po/<locale>/<domain>-<locale>.(po|mo)` pattern so the resolved locale (for example, `el_GR`) appears in every filename.
 
+If you need to strip the AI-generated “References” paragraph from existing bundles without retranslating, use the **Clean AI reference fragments** section: point it at a `.po` file or directory, optionally recompile the `.mo`, and press the button to rewrite every entry that still contains the stray notes.
+
 ## Workflows
 
 ### 1. Catalog and Inventory

@@ -19,6 +19,7 @@ import duplicate_po_locale
 from translate_pot import (
     DEFAULT_LANGUAGES,
     OpenAITranslator,
+    clean_po_references,
     resolve_default_context,
     translate_pot_template,
 )
@@ -40,6 +41,8 @@ class PotTranslatorApp:
         self.plural_var = tk.StringVar(value="")
         self.default_context_var = tk.StringVar(value="")
         self.ai_comment_var = tk.BooleanVar(value=True)
+        self.cleanup_source_var = tk.StringVar(value="po")
+        self.cleanup_compile_var = tk.BooleanVar(value=True)
         self.duplicate_source_var = tk.StringVar(value="")
         self.duplicate_targets_var = tk.StringVar(value="")
         self.duplicate_output_var = tk.StringVar(value="po")
@@ -93,8 +96,23 @@ class PotTranslatorApp:
         ).grid(row=5, column=0, columnspan=3, sticky="w", pady=(6, 0))
         ttk.Entry(options, textvariable=self.plural_var, width=60).grid(row=6, column=0, columnspan=4, sticky="we")
 
+        cleanup_frame = ttk.LabelFrame(frm, text="Clean AI reference fragments", padding=8)
+        cleanup_frame.grid(row=4, column=0, columnspan=3, sticky="we", pady=8)
+        cleanup_frame.columnconfigure(0, weight=1)
+        cleanup_frame.columnconfigure(1, weight=1)
+        cleanup_frame.columnconfigure(2, weight=0)
+        cleanup_frame.columnconfigure(3, weight=0)
+
+        ttk.Label(cleanup_frame, text=".po file or directory:").grid(row=0, column=0, columnspan=4, sticky="w")
+        ttk.Entry(cleanup_frame, textvariable=self.cleanup_source_var, width=60).grid(row=1, column=0, columnspan=2, sticky="we", pady=(2, 4))
+        ttk.Button(cleanup_frame, text="File...", command=self.choose_cleanup_file).grid(row=1, column=2, padx=(6, 0), sticky="w")
+        ttk.Button(cleanup_frame, text="Directory...", command=self.choose_cleanup_directory).grid(row=1, column=3, padx=(6, 0), sticky="w")
+        ttk.Checkbutton(cleanup_frame, text="Recompile .mo", variable=self.cleanup_compile_var).grid(row=2, column=0, sticky="w", pady=(6, 0))
+        self.cleanup_btn = ttk.Button(cleanup_frame, text="Clean .po bundles", command=self.start_cleanup)
+        self.cleanup_btn.grid(row=3, column=0, columnspan=4, sticky="w", pady=(6, 0))
+
         dup_frame = ttk.LabelFrame(frm, text="Duplicate existing .po bundles", padding=8)
-        dup_frame.grid(row=4, column=0, columnspan=3, sticky="we", pady=8)
+        dup_frame.grid(row=5, column=0, columnspan=3, sticky="we", pady=8)
         dup_frame.columnconfigure(0, weight=1)
         dup_frame.columnconfigure(1, weight=1)
         dup_frame.columnconfigure(2, weight=0)
@@ -120,20 +138,20 @@ class PotTranslatorApp:
         self.duplicate_btn.grid(row=8, column=0, columnspan=4, sticky="w", pady=(6, 0))
 
         self.translate_btn = ttk.Button(frm, text="Translate templates", command=self.start_translation)
-        self.translate_btn.grid(row=5, column=0, sticky="w", pady=8)
+        self.translate_btn.grid(row=6, column=0, sticky="w", pady=8)
 
         progress_frame = ttk.Frame(frm)
-        progress_frame.grid(row=6, column=0, columnspan=3, sticky="we")
+        progress_frame.grid(row=7, column=0, columnspan=3, sticky="we")
         progress_frame.columnconfigure(1, weight=1)
         self.progress_label = ttk.Label(progress_frame, text="Progress: 0% (0/0)")
         self.progress_label.grid(row=0, column=0, sticky="w", padx=(0, 8))
         self.progress_bar = ttk.Progressbar(progress_frame, maximum=1, value=0)
         self.progress_bar.grid(row=0, column=1, sticky="we")
 
-        ttk.Label(frm, text="Log:").grid(row=7, column=0, sticky="w")
+        ttk.Label(frm, text="Log:").grid(row=8, column=0, sticky="w")
         self.log_text = tk.Text(frm, height=12, width=100, state="disabled")
-        self.log_text.grid(row=8, column=0, columnspan=3, sticky="nsew")
-        frm.rowconfigure(8, weight=2)
+        self.log_text.grid(row=9, column=0, columnspan=3, sticky="nsew")
+        frm.rowconfigure(9, weight=2)
 
     def log(self, message: str) -> None:
         self.log_text.configure(state="normal")
@@ -201,6 +219,37 @@ class PotTranslatorApp:
         if directory:
             self.duplicate_output_var.set(directory)
 
+    def choose_cleanup_file(self) -> None:
+        path = filedialog.askopenfilename(
+            title="Select .po file to clean",
+            filetypes=[("Portable Object", "*.po"), ("All files", "*.*")],
+        )
+        if path:
+            self.cleanup_source_var.set(path)
+
+    def choose_cleanup_directory(self) -> None:
+        directory = filedialog.askdirectory(title="Select directory containing .po files", mustexist=True)
+        if directory:
+            self.cleanup_source_var.set(directory)
+
+    def start_cleanup(self) -> None:
+        source_value = self.cleanup_source_var.get().strip()
+        if not source_value:
+            messagebox.showerror("Source required", "Provide a .po file or directory.")
+            return
+        sources = duplicate_po_locale.collect_po_paths(source_value)
+        if not sources:
+            messagebox.showerror("Source missing", f"No .po files found at {source_value}.")
+            return
+        self.cleanup_btn.config(state="disabled")
+        self.log(f"[cleanup] {source_value}")
+        thread = threading.Thread(
+            target=self._run_cleanup,
+            args=(sources, self.cleanup_compile_var.get()),
+            daemon=True,
+        )
+        thread.start()
+
     def start_duplication(self) -> None:
         source_value = self.duplicate_source_var.get().strip()
         if not source_value:
@@ -251,14 +300,38 @@ class PotTranslatorApp:
         else:
             for res in results:
                 self.log(f"[dup {res.target_locale}] {res.source.name} -> {res.po_path}")
-                if res.mo_path:
-                    self.log(f"  compiled {res.mo_path}")
+            if res.mo_path:
+                self.log(f"  compiled {res.mo_path}")
         finally:
             self._on_duplication_done()
+
+    def _run_cleanup(self, sources: List[Path], compile_mo: bool) -> None:
+        try:
+            for po_path in sources:
+                if not po_path.exists():
+                    self.log(f"[cleanup error] {po_path}: file not found.")
+                    continue
+                try:
+                    cleaned, mo_path = clean_po_references(po_path, compile_mo)
+                except Exception as exc:  # noqa: BLE001
+                    self.log(f"[cleanup error] {po_path.name}: {exc}")
+                    continue
+                if not cleaned:
+                    self.log(f"[cleanup skip] {po_path.name}: no AI references detected.")
+                    continue
+                self.log(f"[cleanup] {po_path.name}: cleaned {cleaned} entries.")
+                if mo_path:
+                    self.log(f"  compiled {mo_path}")
+        finally:
+            self._on_cleanup_done()
 
     def _on_duplication_done(self) -> None:
         self.duplicate_btn.config(state="normal")
         self.log("Duplication run complete.")
+
+    def _on_cleanup_done(self) -> None:
+        self.cleanup_btn.config(state="normal")
+        self.log("Cleanup run complete.")
 
     def start_translation(self) -> None:
         if not self.selected_files:
