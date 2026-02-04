@@ -136,12 +136,17 @@ def _translate_text(client: "OpenAI", model: str, text: str, target_lang: str) -
 class TranslatorApp:
     def __init__(self, root: tk.Tk):
         self.root = root
-        self.root.title("XLIFF Translator (OpenAI)")
+        self.root.title("Cucumber Destroyer - XLIFF Translator (OpenAI)")
         self.selected_files: List[Path] = []
         self.progress_total = 0
         self.progress_done = 0
         self.app_root = _app_root()
         self.ignore_list: List[str] = []
+        try:
+            self.icon_img = tk.PhotoImage(file=self.app_root / "cucumber.png")
+            self.root.iconphoto(True, self.icon_img)
+        except Exception:
+            pass
 
         self.model_var = tk.StringVar(value="gpt-4.1")
         self.skip_prefilled_var = tk.BooleanVar(value=True)

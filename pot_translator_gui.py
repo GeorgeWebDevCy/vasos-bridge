@@ -28,9 +28,14 @@ from translate_pot import (
 class PotTranslatorApp:
     def __init__(self, root: tk.Tk):
         self.root = root
-        self.root.title("gettext Translator (OpenAI)")
+        self.root.title("Cucumber Destroyer - gettext Translator (OpenAI)")
         self.selected_files: List[Path] = []
         self.app_root = Path(__file__).resolve().parent
+        try:
+            self.icon_img = tk.PhotoImage(file=self.app_root / "cucumber.png")
+            self.root.iconphoto(True, self.icon_img)
+        except Exception:
+            pass
         self.languages_var = tk.StringVar(value=",".join(DEFAULT_LANGUAGES))
         self.model_var = tk.StringVar(value="gpt-4.1")
         self.rpm_var = tk.IntVar(value=120)
