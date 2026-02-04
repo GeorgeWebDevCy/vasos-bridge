@@ -24,16 +24,32 @@ from translate_pot import (
     translate_pot_template,
 )
 
+from windows_taskbar import TaskbarController, TBPFLAG
+
+
+def _app_root() -> Path:
+    return Path(__file__).resolve().parent
+
 
 class PotTranslatorApp:
     def __init__(self, root: tk.Tk):
         self.root = root
         self.root.title("Cucumber Destroyer - gettext Translator (OpenAI)")
         self.selected_files: List[Path] = []
-        self.app_root = Path(__file__).resolve().parent
+        self.app_root = _app_root()
+        
+        # Taskbar integration
+        self.taskbar = TaskbarController()
+        self.taskbar.set_app_id("Cucumber.Destroyer.PotTranslator.1")
+
         try:
-            self.icon_img = tk.PhotoImage(file=self.app_root / "cucumber.png")
-            self.root.iconphoto(True, self.icon_img)
+            # Prefer .ico for Windows taskbar quality
+            ico_path = self.app_root / "cucumber.ico"
+            if ico_path.exists():
+                self.root.iconbitmap(str(ico_path))
+            else:
+                self.icon_img = tk.PhotoImage(file=self.app_root / "cucumber.png")
+                self.root.iconphoto(True, self.icon_img)
         except Exception:
             pass
         self.languages_var = tk.StringVar(value=",".join(DEFAULT_LANGUAGES))
@@ -499,6 +515,11 @@ class PotTranslatorApp:
         self.progress_bar.configure(maximum=max(total, 1), value=0)
         self._update_progress_label()
 
+        # Taskbar progress reset
+        hwnd = self.taskbar.get_hwnd(self.root)
+        self.taskbar.set_progress_state(hwnd, TBPFLAG.TBPF_NORMAL)
+        self.taskbar.set_progress_value(hwnd, 0, max(total, 1))
+
     def _increment_progress(self, step: int = 1) -> None:
         self.progress_done = min(self.progress_done + step, self.progress_total or self.progress_done + step)
         self.progress_bar.configure(value=self.progress_done)
@@ -513,6 +534,11 @@ class PotTranslatorApp:
     def _update_progress_label(self) -> None:
         percent = int((self.progress_done / self.progress_total) * 100) if self.progress_total else 0
         self.progress_label.configure(text=f"Progress: {percent}% ({self.progress_done}/{self.progress_total})")
+        
+        # Taskbar progress update
+        hwnd = self.taskbar.get_hwnd(self.root)
+        self.taskbar.set_progress_value(hwnd, self.progress_done, self.progress_total)
+
         self.root.update_idletasks()
 
 

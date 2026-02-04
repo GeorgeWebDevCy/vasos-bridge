@@ -26,6 +26,8 @@ import xml.etree.ElementTree as ET
 from pathlib import Path
 from typing import Dict, Iterable, List, Optional, Tuple
 
+from windows_taskbar import TaskbarController, TBPFLAG
+
 try:
     from openai import OpenAI
 except ImportError:
@@ -142,9 +144,21 @@ class TranslatorApp:
         self.progress_done = 0
         self.app_root = _app_root()
         self.ignore_list: List[str] = []
+        
+        # Taskbar integration
+        self.taskbar = TaskbarController()
+        # Set a unique App ID so the taskbar icon is grouped correctly
+        self.taskbar.set_app_id("Cucumber.Destroyer.Translator.1")
+
         try:
-            self.icon_img = tk.PhotoImage(file=self.app_root / "cucumber.png")
-            self.root.iconphoto(True, self.icon_img)
+            # Set window icon (title bar + taskbar if App ID matches)
+            # Prefer .ico for Windows taskbar quality
+            ico_path = self.app_root / "cucumber.ico"
+            if ico_path.exists():
+                self.root.iconbitmap(str(ico_path))
+            else:
+                self.icon_img = tk.PhotoImage(file=self.app_root / "cucumber.png")
+                self.root.iconphoto(True, self.icon_img)
         except Exception:
             pass
 
@@ -546,11 +560,15 @@ class TranslatorApp:
             suffix = f" ({note})" if note else ""
             self.log(f"  [lang] {tu_id}: detected {detected_lang}, expected {expected_lang}{suffix}")
 
-    def _reset_progress(self, total: int) -> None:
         self.progress_total = total
         self.progress_done = 0
         self.progress_bar.configure(maximum=max(total, 1), value=0)
         self._update_progress_label()
+        
+        # Taskbar progress reset
+        hwnd = self.taskbar.get_hwnd(self.root)
+        self.taskbar.set_progress_state(hwnd, TBPFLAG.TBPF_NORMAL)
+        self.taskbar.set_progress_value(hwnd, 0, max(total, 1))
 
     def _increment_progress(self, step: int = 1) -> None:
         self.progress_done = min(self.progress_done + step, self.progress_total or self.progress_done + step)
@@ -565,6 +583,11 @@ class TranslatorApp:
     def _update_progress_label(self) -> None:
         percent = int((self.progress_done / self.progress_total) * 100) if self.progress_total else 0
         self.progress_label.configure(text=f"Progress: {percent}% ({self.progress_done}/{self.progress_total})")
+        
+        # Taskbar progress update
+        hwnd = self.taskbar.get_hwnd(self.root)
+        self.taskbar.set_progress_value(hwnd, self.progress_done, self.progress_total)
+        
         self.root.update_idletasks()
 
 

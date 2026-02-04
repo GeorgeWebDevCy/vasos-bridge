@@ -18,6 +18,7 @@ $python = Join-Path $venvPath "Scripts\\python.exe"
     --name "CucumberDestroyer_TranslatorGUI" `
     --icon "cucumber.ico" `
     --add-data "cucumber.png;." `
+    --add-data "cucumber.ico;." `
     --collect-data langdetect `
     translator_gui.py
 
@@ -27,6 +28,7 @@ $python = Join-Path $venvPath "Scripts\\python.exe"
     --name "CucumberDestroyer_PotTranslatorGUI" `
     --icon "cucumber.ico" `
     --add-data "cucumber.png;." `
+    --add-data "cucumber.ico;." `
     pot_translator_gui.py
 
 Write-Host "Built dist\\CucumberDestroyer_TranslatorGUI.exe"
