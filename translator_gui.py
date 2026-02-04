@@ -141,6 +141,7 @@ class TranslatorApp:
         self.progress_total = 0
         self.progress_done = 0
         self.app_root = _app_root()
+        self.ignore_list: List[str] = []
 
         self.model_var = tk.StringVar(value="gpt-4.1")
         self.skip_prefilled_var = tk.BooleanVar(value=True)
@@ -188,6 +189,10 @@ class TranslatorApp:
         ).grid(row=1, column=0, columnspan=2, sticky="w", pady=(4, 0))
         ttk.Label(options_frame, text="Max requests/min:").grid(row=1, column=2, sticky="e", padx=(0, 4))
         ttk.Entry(options_frame, textvariable=self.rpm_var, width=6).grid(row=1, column=3, sticky="w")
+
+        ttk.Button(options_frame, text="Configure Ignore List...", command=self.configure_ignore_list).grid(
+            row=2, column=0, columnspan=2, sticky="w", pady=(4, 0)
+        )
 
         # Buttons
         self.translate_btn = ttk.Button(frm, text="Translate", command=self.start_translation)
@@ -242,6 +247,28 @@ class TranslatorApp:
             self.files_list.insert("end", str(f))
         messagebox.showinfo("Loaded", f"Loaded {len(xliffs)} XLIFF files from {repo_root}")
 
+    def configure_ignore_list(self) -> None:
+        top = tk.Toplevel(self.root)
+        top.title("Configure Ignore List")
+        
+        ttk.Label(top, text="Enter words/phrases to ignore (one per line):").pack(anchor="w", padx=10, pady=5)
+        
+        text_area = tk.Text(top, width=40, height=10)
+        text_area.pack(padx=10, pady=5, fill="both", expand=True)
+        text_area.insert("1.0", "\n".join(self.ignore_list))
+        
+        def save():
+            content = text_area.get("1.0", "end").strip()
+            self.ignore_list = [line.strip() for line in content.splitlines() if line.strip()]
+            top.destroy()
+            
+        ttk.Frame(top).pack(pady=5) # Spacer
+        btn_frame = ttk.Frame(top)
+        btn_frame.pack(fill="x", padx=10, pady=5)
+        
+        ttk.Button(btn_frame, text="Cancel", command=top.destroy).pack(side="right", padx=5)
+        ttk.Button(btn_frame, text="Save", command=save).pack(side="right")
+
     def start_translation(self) -> None:
         if not self.selected_files:
             messagebox.showerror("No files", "Please choose at least one XLIFF file.")
@@ -288,7 +315,7 @@ class TranslatorApp:
         self.translate_btn.config(state="disabled")
         thread = threading.Thread(
             target=self._run_translation,
-            args=(self.selected_files, model, skip_prefilled, overwrite, rpm),
+            args=(self.selected_files, model, skip_prefilled, overwrite, rpm, list(self.ignore_list)),
             daemon=True,
         )
         thread.start()
@@ -300,6 +327,7 @@ class TranslatorApp:
         skip_prefilled: bool,
         overwrite: bool,
         rpm: int,
+        ignore_list: List[str],
     ) -> None:
         try:
             client = OpenAI()
@@ -340,6 +368,7 @@ class TranslatorApp:
                     overwrite,
                     min_delay,
                     last_call,
+                    ignore_list,
                 )
                 if not translated_any:
                     self.log(f"  [skip-file] {path.name}: no translations performed for {target_lang}")
@@ -371,6 +400,7 @@ class TranslatorApp:
         overwrite: bool,
         min_delay: float,
         last_call: float,
+        ignore_list: List[str],
     ) -> Tuple[float, bool]:
         translated_any = False
         file_el.attrib["target-language"] = target_lang
@@ -395,10 +425,18 @@ class TranslatorApp:
                 wait_for = min_delay - (now - last_call)
                 if wait_for > 0:
                     time.sleep(wait_for)
+                
+                # Apply masking
+                masked_source, mask_map = _mask_ignored_text(source_text, ignore_list)
+                
                 call_started = time.time()
-                translated, system_prompt, user_prompt = _translate_text(
-                    client, model, source_text, target_lang
+                translated_masked, system_prompt, user_prompt = _translate_text(
+                    client, model, masked_source, target_lang
                 )
+                
+                # Unmask
+                translated = _unmask_ignored_text(translated_masked, mask_map)
+                
                 last_call = call_started
             except Exception as exc:  # noqa: BLE001
                 self.log(f"  [error] {tu_id}: translation failed: {exc}")
@@ -529,6 +567,32 @@ def main() -> None:
     root = tk.Tk()
     app = TranslatorApp(root)
     root.mainloop()
+
+
+def _mask_ignored_text(text: str, ignore_list: List[str]) -> Tuple[str, Dict[str, str]]:
+    if not ignore_list:
+        return text, {}
+    
+    sorted_ignore = sorted(ignore_list, key=len, reverse=True)
+    mask_map = {}
+    masked_text = text
+    
+    for i, phrase in enumerate(sorted_ignore):
+        if not phrase.strip():
+            continue
+        placeholder = f"__IGNORE_{i}__"
+        if phrase in masked_text:
+            mask_map[placeholder] = phrase
+            masked_text = masked_text.replace(phrase, placeholder)
+            
+    return masked_text, mask_map
+
+
+def _unmask_ignored_text(masked_text: str, mask_map: Dict[str, str]) -> str:
+    text = masked_text
+    for placeholder, original in mask_map.items():
+        text = text.replace(placeholder, original)
+    return text
 
 
 if __name__ == "__main__":
