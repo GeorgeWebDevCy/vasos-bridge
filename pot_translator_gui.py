@@ -8,6 +8,7 @@ This keeps gettext workflows isolated from the XLIFF UI while reusing the same O
 from __future__ import annotations
 
 import os
+import sys
 import threading
 import tkinter as tk
 from pathlib import Path
@@ -28,6 +29,8 @@ from windows_taskbar import TaskbarController, TBPFLAG
 
 
 def _app_root() -> Path:
+    if getattr(sys, "frozen", False):
+        return Path(sys.executable).resolve().parent
     return Path(__file__).resolve().parent
 
 

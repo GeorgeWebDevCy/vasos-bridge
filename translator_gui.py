@@ -105,7 +105,7 @@ def _load_dotenv_key(var_name: str, dotenv_path: Path) -> Optional[str]:
 def _app_root() -> Path:
     if getattr(sys, "frozen", False):
         return Path(sys.executable).resolve().parent
-    return Path.cwd()
+    return Path(__file__).resolve().parent
 
 
 def _write_xliff(tree: ET.ElementTree, output_path: Path) -> None:
@@ -302,7 +302,7 @@ class TranslatorApp:
                 "(pip install langdetect).",
             )
             self._langdetect_warned = True
-        # Prefer .env in the current working directory to avoid stale global keys.
+        # Prefer an app-local .env to avoid stale global keys.
         env_path = self.app_root / ".env"
         dotenv_val = _load_dotenv_key("OPENAI_API_KEY", env_path)
         if dotenv_val:

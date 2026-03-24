@@ -28,7 +28,7 @@ pip install openai langdetect
 
 ### Environment Variables
 
-For AI translation features, create a `.env` file in the root directory with your OpenAI API key:
+For AI translation features, create a `.env` file in the repo root with your OpenAI API key. For packaged Windows `.exe` builds, place the same `.env` next to the executable:
 
 ```env
 OPENAI_API_KEY=sk-...
@@ -113,7 +113,7 @@ Build a standalone `.exe` using PyInstaller:
 ```powershell
 .\build_windows_exe.ps1
 ```
-The script creates/uses `.venv` in the repo. The output is `dist\TranslatorGUI.exe`. Place a `.env` file next to the exe (or set `OPENAI_API_KEY`) before running it.
+The script creates/uses `.venv` in the repo. The outputs are `dist\CucumberDestroyer_TranslatorGUI.exe` and `dist\CucumberDestroyer_PotTranslatorGUI.exe`. Place a `.env` file next to the exe you run (or set `OPENAI_API_KEY`) before launching it.
 
 **Using the CLI:**
 Translate a single file (or batch via scripts):
