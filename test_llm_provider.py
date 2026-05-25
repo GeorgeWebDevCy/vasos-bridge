@@ -1,3 +1,4 @@
+import ast
 import json
 import os
 import tempfile
@@ -163,6 +164,17 @@ class TestLLMProvider(unittest.TestCase):
         with patch.dict("sys.modules", {"openai": openai_module}):
             client = ChatClient("openai", "gpt-4.1")
             self.assertEqual(client.list_models(), ["gpt-4.1"])
+
+    def test_gui_modules_import_provider_client_for_connection_buttons(self):
+        for filename in ("pot_translator_gui.py", "translator_gui.py"):
+            tree = ast.parse(Path(filename).read_text(encoding="utf-8"))
+            imports = {
+                name.name
+                for node in tree.body
+                if isinstance(node, ast.ImportFrom) and node.module == "llm_provider"
+                for name in node.names
+            }
+            self.assertIn("ChatClient", imports, filename)
 
 
 if __name__ == "__main__":

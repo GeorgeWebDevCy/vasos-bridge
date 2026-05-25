@@ -16,7 +16,7 @@ from typing import Dict, Iterable, List, Optional
 
 import translate_pot
 import duplicate_po_locale
-from llm_provider import DEFAULT_MODELS, SUPPORTED_PROVIDERS, default_model, prepare_provider
+from llm_provider import ChatClient, DEFAULT_MODELS, SUPPORTED_PROVIDERS, default_model, prepare_provider
 from translate_pot import (
     AITranslator,
     DEFAULT_LANGUAGES,
