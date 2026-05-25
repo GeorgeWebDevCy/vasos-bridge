@@ -23,26 +23,78 @@ This repository stores XLIFF 1.2 exports for the Bridge Project website. Each fi
 To use the translation and management tools, you need Python 3.9+ and the following dependencies:
 
 ```bash
-pip install openai langdetect
+pip install openai anthropic langdetect
 ```
 
-### Environment Variables
+### Providers And API Keys
 
-For AI translation features, create a `.env` file in the repo root with your OpenAI API key. For packaged Windows `.exe` builds, place the same `.env` next to the executable:
+The translators support `openai`, `anthropic` (Claude), and `ollama`.
+
+| Provider | Where to obtain access | Key variable |
+| --- | --- | --- |
+| OpenAI | Create an API key in the [OpenAI API dashboard](https://platform.openai.com/api-keys). | `OPENAI_API_KEY` |
+| Anthropic Claude | Create an API key in [Anthropic Console](https://console.anthropic.com/settings/keys). | `ANTHROPIC_API_KEY` |
+| Ollama local | Install and run [Ollama](https://ollama.com/download); no API key is needed for local models. | None |
+| Ollama Cloud direct API | Create a key in [Ollama API key settings](https://ollama.com/settings/keys). | `OLLAMA_API_KEY` |
+
+For scripts or Python GUIs, create `.env` in this repository root. It is already ignored by git. Add only the provider values you use:
 
 ```env
 OPENAI_API_KEY=sk-...
+ANTHROPIC_API_KEY=sk-ant-...
 ```
+
+For direct Ollama Cloud API calls, put this in `.env`:
+
+```env
+OLLAMA_HOST=https://ollama.com
+OLLAMA_API_KEY=your_ollama_api_key
+```
+
+For an Ollama server running locally, do not set `OLLAMA_HOST`, or set:
+
+```env
+OLLAMA_HOST=http://localhost:11434
+```
+
+Ollama also supports running subscription/cloud models through the local Ollama service. Run `ollama signin`, then select the `ollama` provider with a cloud model such as `gpt-oss:120b-cloud`; this continues to use the local endpoint and does not require an `OLLAMA_API_KEY` in this application.
+
+For packaged Windows `.exe` builds, put the same `.env` beside the `.exe` you launch. Never commit or share `.env` files.
+
+### Testing Connections
+
+The connection tester sends one very small model request:
+
+```bash
+python test_provider_connection.py --provider openai --model gpt-4.1
+python test_provider_connection.py --provider anthropic --model claude-sonnet-4-20250514
+python test_provider_connection.py --provider ollama --model llama3.2
+```
+
+For Ollama Cloud through the local signed-in app:
+
+```bash
+ollama signin
+python test_provider_connection.py --provider ollama --model gpt-oss:120b-cloud
+```
+
+For direct Ollama Cloud API access, set `OLLAMA_HOST` and `OLLAMA_API_KEY` in `.env` as above, then run:
+
+```bash
+python test_provider_connection.py --provider ollama --model gpt-oss:120b
+```
+
+Any hosted-provider test may incur a small API usage charge.
 
 ## Tooling Overview
 
 The repository contains several utility scripts:
 
 *   **`xliff_tools.py`**: The core utility for cataloging, validating, and generating XLIFF files.
-*   **`translator_gui.py`**: A desktop GUI for translating files using OpenAI models (GPT-4, etc.).
-*   **`translate_one.py`**: A command-line tool for translating single or multiple files via OpenAI.
+*   **`translator_gui.py`**: A desktop GUI for translating files using OpenAI, Claude, or Ollama models.
+*   **`translate_one.py`**: A command-line tool for translating single or multiple files via an AI provider.
 *   **`prepare_wpml_import.py`**: A script to organize translated files for re-import into WPML.
- *   **`pot_translator_gui.py`**: Tkinter GUI for translating `.pot` templates via OpenAI with live progress, compile controls, plural overrides, and dry-run support.
+ *   **`pot_translator_gui.py`**: Tkinter GUI for translating `.pot` templates via selectable AI providers with live progress, compile controls, plural overrides, and dry-run support.
  *   **`translate_pot.py`**: Translate gettext `.pot` templates into per-language `.po` files and optionally compile `.mo` binaries.
 
 ### Translating gettext templates
@@ -55,16 +107,18 @@ To generate `.po`/`.mo` bundles from a gettext `.pot` template, run:
 python translate_pot.py \
   --input wp-xliff-translator/includes/plugin-update-checker/languages/plugin-update-checker.pot \
   --languages ar,cs,de \
+  --provider anthropic \
+  --model claude-sonnet-4-20250514 \
   --compile
 ```
 
 You can provide a fallback context for entries that lack `msgctxt` by using `--default-context`, exporting `GPT_TRANSLATOR_CONTEXT`, or adding `default_context = "..."` under `[tool.gpt-po-translator]` in `pyproject.toml`. The CLI option overrides the environment/configured values. Translations are also tagged with `#. AI-generated` by default; pass `--no-ai-comment` when you want to skip that comment.
 
-The CLI writes `po/<locale>/<domain>-<locale>.po` and, when `--compile` is used, companion `.mo` files. It resolves the proper locale suffix for each language (e.g., translating `masterstudy-lms-learning-management-system.pot` to Greek produces `masterstudy-lms-learning-management-system-el_GR.po`), uses the same `OPENAI_API_KEY` as the other tools, throttles requests via `--rpm`, and preserves comments/context while translating placeholders. Use `--max-entries` to limit how many strings are translated per language, `--plural-forms` to override locale plural rules (`lang=expr`), and `--dry-run` to emit header-only `.po` files without calling OpenAI.
+The CLI writes `po/<locale>/<domain>-<locale>.po` and, when `--compile` is used, companion `.mo` files. It resolves the proper locale suffix for each language (e.g., translating `masterstudy-lms-learning-management-system.pot` to Greek produces `masterstudy-lms-learning-management-system-el.po`), selects a provider with `--provider openai|anthropic|ollama`, throttles requests via `--rpm`, and preserves comments/context while translating placeholders. Use `--max-entries` to limit how many strings are translated per language, `--plural-forms` to override locale plural rules (`lang=expr`), and `--dry-run` to emit header-only `.po` files without calling an AI provider.
 
 #### GUI
 
-Alternatively, run `python pot_translator_gui.py` to launch a desktop interface. Select one or more `.pot` files, enter a comma-separated list of target languages, choose an output directory (defaults to `po`), optionally enable `.mo` compilation and dry runs, and set plural-form overrides in `lang=expr` form. The GUI also exposes the translation model, requests-per-minute throttle, and per-language entry limits before kicking off the OpenAI batch. Log output and progress appear in real time, and generated `.po`/`.mo` bundles follow the `po/<locale>/<domain>-<locale>.(po|mo)` pattern so the resolved locale (for example, `el_GR`) appears in every filename.
+Alternatively, run `python pot_translator_gui.py` to launch a desktop interface. Select one or more `.pot` files, enter a comma-separated list of target languages, choose an output directory (defaults to `po`), optionally enable `.mo` compilation and dry runs, and set plural-form overrides in `lang=expr` form. The GUI also exposes the provider, model, requests-per-minute throttle, and per-language entry limits before starting a batch. Log output and progress appear in real time, and generated `.po`/`.mo` bundles follow the `po/<locale>/<domain>-<locale>.(po|mo)` pattern.
 
 If you need to strip the AI-generated “References” paragraph from existing bundles without retranslating, use the **Clean AI reference fragments** section: point it at a `.po` file or directory, optionally recompile the `.mo`, and press the button to rewrite every entry that still contains the stray notes.
 
@@ -98,7 +152,7 @@ python xliff_tools.py generate content/en build/xliff --copy-source --segment-by
 
 ### 4. Translating Content (AI-Powered)
 
-You can translate XLIFF files using OpenAI's models via GUI or CLI.
+You can translate XLIFF files using OpenAI, Anthropic Claude, or local/cloud Ollama models via GUI or CLI.
 
 **Using the GUI:**
 Run `python translator_gui.py` to open the interface.
@@ -113,12 +167,14 @@ Build a standalone `.exe` using PyInstaller:
 ```powershell
 .\build_windows_exe.ps1
 ```
-The script creates/uses `.venv` in the repo. The outputs are `dist\CucumberDestroyer_TranslatorGUI.exe` and `dist\CucumberDestroyer_PotTranslatorGUI.exe`. Place a `.env` file next to the exe you run (or set `OPENAI_API_KEY`) before launching it.
+The script creates/uses `.venv` in the repo. The outputs are `dist\CucumberDestroyer_TranslatorGUI.exe` and `dist\CucumberDestroyer_PotTranslatorGUI.exe`. Place a `.env` file next to the exe for hosted-provider keys, or run Ollama locally before choosing its provider.
 
 **Using the CLI:**
 Translate a single file (or batch via scripts):
 ```bash
-python translate_one.py --input originals/MyJob.xliff --languages ar,cs,de --model gpt-4o
+python translate_one.py --input originals/MyJob.xliff --languages ar,cs,de --provider openai --model gpt-4o
+python translate_one.py --input originals/MyJob.xliff --languages el --provider anthropic --model claude-sonnet-4-20250514
+python translate_one.py --input originals/MyJob.xliff --languages de --provider ollama --model llama3.2
 ```
 Outputs are saved to `translated/` (flat) with `-<lang>-translated.xliff` suffixes unless you set `--output` or `--overwrite`.
 Key features:

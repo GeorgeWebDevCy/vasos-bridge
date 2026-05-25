@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Simple Tkinter GUI to translate XLIFF 1.2 files using OpenAI chat models.
+Simple Tkinter GUI to translate XLIFF 1.2 files using selectable AI models.
 
 Features:
 * Select one or more XLIFF files.
@@ -10,8 +10,8 @@ Features:
 
 Requirements:
 * Python 3.9+
-* openai >= 1.0.0 (install with `pip install openai`)
-* Set OPENAI_API_KEY in your environment before running.
+* openai or anthropic SDK when using those hosted providers
+* Set the provider API key in your environment or .env when required.
 """
 
 from __future__ import annotations
@@ -26,12 +26,8 @@ import xml.etree.ElementTree as ET
 from pathlib import Path
 from typing import Dict, Iterable, List, Optional, Tuple
 
+from llm_provider import ChatClient, DEFAULT_MODELS, SUPPORTED_PROVIDERS, default_model, prepare_provider
 from windows_taskbar import TaskbarController, TBPFLAG
-
-try:
-    from openai import OpenAI
-except ImportError:
-    OpenAI = None
 
 try:
     from langdetect import DetectorFactory, LangDetectException, detect
@@ -116,29 +112,21 @@ def _write_xliff(tree: ET.ElementTree, output_path: Path) -> None:
         handle.write("\n")
 
 
-def _translate_text(client: "OpenAI", model: str, text: str, target_lang: str) -> Tuple[str, str, str]:
+def _translate_text(client: ChatClient, text: str, target_lang: str) -> Tuple[str, str, str]:
     # Keep prompt tight to reduce latency and preserve markup.
     system_prompt = (
         "You are a translation engine. Translate the user text to the target language while preserving all HTML tags, "
         "attributes, placeholders, and URLs. Return only the translated text. Do not add explanations or quotes."
     )
     user_prompt = f"Target language: {target_lang}\n\nText:\n{text}"
-    response = client.chat.completions.create(
-        model=model,
-        messages=[
-            {"role": "system", "content": system_prompt},
-            {"role": "user", "content": user_prompt},
-        ],
-        temperature=0,
-    )
-    translated = response.choices[0].message.content.strip()
+    translated = client.complete(system_prompt, user_prompt, temperature=0)
     return translated, system_prompt, user_prompt
 
 
 class TranslatorApp:
     def __init__(self, root: tk.Tk):
         self.root = root
-        self.root.title("Cucumber Destroyer - XLIFF Translator (OpenAI)")
+        self.root.title("Cucumber Destroyer - XLIFF Translator")
         self.selected_files: List[Path] = []
         self.progress_total = 0
         self.progress_done = 0
@@ -162,7 +150,8 @@ class TranslatorApp:
         except Exception:
             pass
 
-        self.model_var = tk.StringVar(value="gpt-4.1")
+        self.provider_var = tk.StringVar(value="openai")
+        self.model_var = tk.StringVar(value=default_model("openai"))
         self.skip_prefilled_var = tk.BooleanVar(value=True)
         self.overwrite_var = tk.BooleanVar(value=False)
         self.rpm_var = tk.IntVar(value=120)  # requests per minute throttle
@@ -194,23 +183,33 @@ class TranslatorApp:
         # Options
         options_frame = ttk.Frame(frm)
         options_frame.grid(row=3, column=0, columnspan=3, sticky="w", pady=4)
-        ttk.Label(options_frame, text="Model:").grid(row=0, column=0, sticky="w")
-        ttk.Entry(options_frame, textvariable=self.model_var, width=20).grid(row=0, column=1, sticky="w", padx=(4, 12))
+        ttk.Label(options_frame, text="Provider:").grid(row=0, column=0, sticky="w")
+        provider_box = ttk.Combobox(
+            options_frame,
+            textvariable=self.provider_var,
+            values=SUPPORTED_PROVIDERS,
+            state="readonly",
+            width=12,
+        )
+        provider_box.grid(row=0, column=1, sticky="w", padx=(4, 12))
+        provider_box.bind("<<ComboboxSelected>>", self._provider_changed)
+        ttk.Label(options_frame, text="Model:").grid(row=0, column=2, sticky="w")
+        ttk.Entry(options_frame, textvariable=self.model_var, width=28).grid(row=0, column=3, sticky="w", padx=(4, 12))
         ttk.Checkbutton(
             options_frame,
             text="Skip already filled targets",
             variable=self.skip_prefilled_var,
-        ).grid(row=0, column=2, sticky="w")
+        ).grid(row=1, column=0, columnspan=2, sticky="w", pady=(4, 0))
         ttk.Checkbutton(
             options_frame,
             text="Overwrite originals (otherwise saved under translated/)",
             variable=self.overwrite_var,
-        ).grid(row=1, column=0, columnspan=2, sticky="w", pady=(4, 0))
+        ).grid(row=2, column=0, columnspan=2, sticky="w", pady=(4, 0))
         ttk.Label(options_frame, text="Max requests/min:").grid(row=1, column=2, sticky="e", padx=(0, 4))
         ttk.Entry(options_frame, textvariable=self.rpm_var, width=6).grid(row=1, column=3, sticky="w")
 
         ttk.Button(options_frame, text="Configure Ignore List...", command=self.configure_ignore_list).grid(
-            row=2, column=0, columnspan=2, sticky="w", pady=(4, 0)
+            row=3, column=0, columnspan=2, sticky="w", pady=(4, 0)
         )
 
         # Buttons
@@ -237,6 +236,10 @@ class TranslatorApp:
         self.log_text.insert("end", message + "\n")
         self.log_text.see("end")
         self.log_text.configure(state="disabled")
+
+    def _provider_changed(self, _event: object = None) -> None:
+        if self.model_var.get().strip() in DEFAULT_MODELS.values():
+            self.model_var.set(default_model(self.provider_var.get()))
 
     def choose_files(self) -> None:
         files = filedialog.askopenfilenames(
@@ -292,9 +295,6 @@ class TranslatorApp:
         if not self.selected_files:
             messagebox.showerror("No files", "Please choose at least one XLIFF file.")
             return
-        if OpenAI is None:
-            messagebox.showerror("Missing dependency", "Please install the openai package (`pip install openai`).")
-            return
         if self.skip_prefilled_var.get() and not self.langdetect_available and not self._langdetect_warned:
             messagebox.showwarning(
                 "Language detection unavailable",
@@ -302,19 +302,14 @@ class TranslatorApp:
                 "(pip install langdetect).",
             )
             self._langdetect_warned = True
-        # Prefer an app-local .env to avoid stale global keys.
-        env_path = self.app_root / ".env"
-        dotenv_val = _load_dotenv_key("OPENAI_API_KEY", env_path)
-        if dotenv_val:
-            existing = os.getenv("OPENAI_API_KEY")
-            if existing and existing != dotenv_val:
-                self.log("Using OPENAI_API_KEY from .env (overriding existing environment value).")
-            os.environ["OPENAI_API_KEY"] = dotenv_val
-        if not os.getenv("OPENAI_API_KEY"):
-            messagebox.showerror("Missing OPENAI_API_KEY", "Set OPENAI_API_KEY in your environment or .env file.")
+        provider = self.provider_var.get().strip() or "openai"
+        try:
+            provider = prepare_provider(provider, self.app_root / ".env")
+        except (RuntimeError, ValueError) as exc:
+            messagebox.showerror("Provider setup", str(exc))
             return
 
-        model = self.model_var.get().strip() or "gpt-4o-mini"
+        model = self.model_var.get().strip() or default_model(provider)
         skip_prefilled = self.skip_prefilled_var.get()
         overwrite = self.overwrite_var.get()
         rpm = max(1, self.rpm_var.get() or 1)
@@ -334,7 +329,7 @@ class TranslatorApp:
         self.translate_btn.config(state="disabled")
         thread = threading.Thread(
             target=self._run_translation,
-            args=(self.selected_files, model, skip_prefilled, overwrite, rpm, list(self.ignore_list)),
+            args=(self.selected_files, provider, model, skip_prefilled, overwrite, rpm, list(self.ignore_list)),
             daemon=True,
         )
         thread.start()
@@ -342,6 +337,7 @@ class TranslatorApp:
     def _run_translation(
         self,
         files: List[Path],
+        provider: str,
         model: str,
         skip_prefilled: bool,
         overwrite: bool,
@@ -349,9 +345,9 @@ class TranslatorApp:
         ignore_list: List[str],
     ) -> None:
         try:
-            client = OpenAI()
+            client = ChatClient(provider, model)
         except Exception as exc:  # noqa: BLE001
-            self._on_done(error=f"Failed to initialize OpenAI client: {exc}")
+            self._on_done(error=f"Failed to initialize {provider} client: {exc}")
             return
 
         min_delay = 60.0 / float(rpm)
@@ -377,7 +373,6 @@ class TranslatorApp:
                     continue
                 last_call, translated_any = self._translate_file(
                     client,
-                    model,
                     tree,
                     file_el,
                     ns,
@@ -408,8 +403,7 @@ class TranslatorApp:
 
     def _translate_file(
         self,
-        client: "OpenAI",
-        model: str,
+        client: ChatClient,
         tree: ET.ElementTree,
         file_el: ET.Element,
         ns: Dict[str, str],
@@ -450,7 +444,7 @@ class TranslatorApp:
                 
                 call_started = time.time()
                 translated_masked, system_prompt, user_prompt = _translate_text(
-                    client, model, masked_source, target_lang
+                    client, masked_source, target_lang
                 )
                 
                 # Unmask
@@ -560,6 +554,7 @@ class TranslatorApp:
             suffix = f" ({note})" if note else ""
             self.log(f"  [lang] {tu_id}: detected {detected_lang}, expected {expected_lang}{suffix}")
 
+    def _reset_progress(self, total: int) -> None:
         self.progress_total = total
         self.progress_done = 0
         self.progress_bar.configure(maximum=max(total, 1), value=0)

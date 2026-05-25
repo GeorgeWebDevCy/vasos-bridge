@@ -11,7 +11,7 @@ function Invoke-CheckedCommand {
 
     & $Command[0] $Command[1..($Command.Length - 1)]
     if ($LASTEXITCODE -ne 0) {
-        throw "Command failed with exit code $LASTEXITCODE: $($Command -join ' ')"
+        throw "Command failed with exit code ${LASTEXITCODE}: $($Command -join ' ')"
     }
 }
 
@@ -35,16 +35,24 @@ if (-not (Test-WorkingPython $python)) {
     if (Test-Path $venvPath) {
         Remove-Item $venvPath -Recurse -Force
     }
-    Invoke-CheckedCommand @("python", "-m", "venv", $venvPath)
+    $pythonLauncher = Join-Path $env:WINDIR "py.exe"
+    if (-not (Test-Path $pythonLauncher)) {
+        $pythonLauncher = "py"
+    }
+    Invoke-CheckedCommand @($pythonLauncher, "-3", "-m", "venv", $venvPath)
 }
 
 Invoke-CheckedCommand @($python, "-m", "pip", "install", "--upgrade", "pip")
-Invoke-CheckedCommand @($python, "-m", "pip", "install", "pyinstaller", "openai", "langdetect")
+Invoke-CheckedCommand @($python, "-m", "pip", "install", "pyinstaller", "openai", "anthropic", "langdetect")
 
 Invoke-CheckedCommand @(
     $python,
     "-m",
     "PyInstaller",
+    "--noconfirm",
+    "--clean",
+    "--workpath",
+    "build-windows",
     "--noconsole",
     "--onefile",
     "--name",
@@ -57,6 +65,10 @@ Invoke-CheckedCommand @(
     "cucumber.ico;.",
     "--collect-data",
     "langdetect",
+    "--hidden-import",
+    "openai",
+    "--hidden-import",
+    "anthropic",
     "translator_gui.py"
 )
 
@@ -64,6 +76,10 @@ Invoke-CheckedCommand @(
     $python,
     "-m",
     "PyInstaller",
+    "--noconfirm",
+    "--clean",
+    "--workpath",
+    "build-windows",
     "--noconsole",
     "--onefile",
     "--name",
@@ -74,6 +90,10 @@ Invoke-CheckedCommand @(
     "cucumber.png;.",
     "--add-data",
     "cucumber.ico;.",
+    "--hidden-import",
+    "openai",
+    "--hidden-import",
+    "anthropic",
     "pot_translator_gui.py"
 )
 

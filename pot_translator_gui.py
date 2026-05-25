@@ -2,12 +2,11 @@
 """
 Tkinter GUI for translating gettext .pot templates via the translate_pot CLI helpers.
 
-This keeps gettext workflows isolated from the XLIFF UI while reusing the same OpenAI translation core.
+This keeps gettext workflows isolated from the XLIFF UI while reusing the same AI translation core.
 """
 
 from __future__ import annotations
 
-import os
 import sys
 import threading
 import tkinter as tk
@@ -17,9 +16,10 @@ from typing import Dict, Iterable, List, Optional
 
 import translate_pot
 import duplicate_po_locale
+from llm_provider import DEFAULT_MODELS, SUPPORTED_PROVIDERS, default_model, prepare_provider
 from translate_pot import (
+    AITranslator,
     DEFAULT_LANGUAGES,
-    OpenAITranslator,
     clean_po_references,
     resolve_default_context,
     translate_pot_template,
@@ -37,10 +37,10 @@ def _app_root() -> Path:
 class PotTranslatorApp:
     def __init__(self, root: tk.Tk):
         self.root = root
-        self.root.title("Cucumber Destroyer - gettext Translator (OpenAI)")
+        self.root.title("Cucumber Destroyer - gettext Translator")
         self.selected_files: List[Path] = []
         self.app_root = _app_root()
-        
+
         # Taskbar integration
         self.taskbar = TaskbarController()
         self.taskbar.set_app_id("Cucumber.Destroyer.PotTranslator.1")
@@ -56,7 +56,8 @@ class PotTranslatorApp:
         except Exception:
             pass
         self.languages_var = tk.StringVar(value=",".join(DEFAULT_LANGUAGES))
-        self.model_var = tk.StringVar(value="gpt-4.1")
+        self.provider_var = tk.StringVar(value="openai")
+        self.model_var = tk.StringVar(value=default_model("openai"))
         self.rpm_var = tk.IntVar(value=120)
         self.max_entries_var = tk.StringVar(value="0")
         self.output_dir_var = tk.StringVar(value="po")
@@ -99,26 +100,36 @@ class PotTranslatorApp:
         ttk.Label(options, text="Output directory:").grid(row=0, column=0, sticky="w")
         ttk.Entry(options, textvariable=self.output_dir_var, width=30).grid(row=0, column=1, sticky="w")
         ttk.Button(options, text="Browse", command=self.choose_output_dir).grid(row=0, column=2, sticky="e")
-        ttk.Label(options, text="Model:").grid(row=1, column=0, sticky="w", pady=(6, 0))
-        ttk.Entry(options, textvariable=self.model_var, width=20).grid(row=1, column=1, sticky="w", pady=(6, 0))
-        ttk.Label(options, text="RPM:").grid(row=1, column=2, sticky="w", padx=(12, 0), pady=(6, 0))
-        ttk.Entry(options, textvariable=self.rpm_var, width=6).grid(row=1, column=3, sticky="w", pady=(6, 0))
-        ttk.Label(options, text="Max entries (0=all):").grid(row=2, column=0, sticky="w", pady=(6, 0))
-        ttk.Entry(options, textvariable=self.max_entries_var, width=10).grid(row=2, column=1, sticky="w", pady=(6, 0))
-        ttk.Checkbutton(options, text="Compile .mo", variable=self.compile_var).grid(row=2, column=2, sticky="w", pady=(6, 0))
-        ttk.Checkbutton(options, text="Dry run (no OpenAI)", variable=self.dry_run_var).grid(row=2, column=3, sticky="w", pady=(6, 0))
-        ttk.Label(options, text="Default context (optional):").grid(row=3, column=0, sticky="w", pady=(6, 0))
-        ttk.Entry(options, textvariable=self.default_context_var, width=40).grid(row=3, column=1, columnspan=3, sticky="we", pady=(6, 0))
+        ttk.Label(options, text="Provider:").grid(row=1, column=0, sticky="w", pady=(6, 0))
+        provider_box = ttk.Combobox(
+            options,
+            textvariable=self.provider_var,
+            values=SUPPORTED_PROVIDERS,
+            state="readonly",
+            width=14,
+        )
+        provider_box.grid(row=1, column=1, sticky="w", pady=(6, 0))
+        provider_box.bind("<<ComboboxSelected>>", self._provider_changed)
+        ttk.Label(options, text="Model:").grid(row=2, column=0, sticky="w", pady=(6, 0))
+        ttk.Entry(options, textvariable=self.model_var, width=28).grid(row=2, column=1, sticky="w", pady=(6, 0))
+        ttk.Label(options, text="RPM:").grid(row=2, column=2, sticky="w", padx=(12, 0), pady=(6, 0))
+        ttk.Entry(options, textvariable=self.rpm_var, width=6).grid(row=2, column=3, sticky="w", pady=(6, 0))
+        ttk.Label(options, text="Max entries (0=all):").grid(row=3, column=0, sticky="w", pady=(6, 0))
+        ttk.Entry(options, textvariable=self.max_entries_var, width=10).grid(row=3, column=1, sticky="w", pady=(6, 0))
+        ttk.Checkbutton(options, text="Compile .mo", variable=self.compile_var).grid(row=3, column=2, sticky="w", pady=(6, 0))
+        ttk.Checkbutton(options, text="Dry run (no AI call)", variable=self.dry_run_var).grid(row=3, column=3, sticky="w", pady=(6, 0))
+        ttk.Label(options, text="Default context (optional):").grid(row=4, column=0, sticky="w", pady=(6, 0))
+        ttk.Entry(options, textvariable=self.default_context_var, width=40).grid(row=4, column=1, columnspan=3, sticky="we", pady=(6, 0))
         ttk.Checkbutton(
             options,
             text="Tag translations (#. AI-generated)",
             variable=self.ai_comment_var,
-        ).grid(row=4, column=0, columnspan=4, sticky="w")
+        ).grid(row=5, column=0, columnspan=4, sticky="w")
         ttk.Label(
             options,
             text="Plural overrides (lang=expr, comma-separated):",
-        ).grid(row=5, column=0, columnspan=3, sticky="w", pady=(6, 0))
-        ttk.Entry(options, textvariable=self.plural_var, width=60).grid(row=6, column=0, columnspan=4, sticky="we")
+        ).grid(row=6, column=0, columnspan=3, sticky="w", pady=(6, 0))
+        ttk.Entry(options, textvariable=self.plural_var, width=60).grid(row=7, column=0, columnspan=4, sticky="we")
 
         cleanup_frame = ttk.LabelFrame(frm, text="Clean AI reference fragments", padding=8)
         cleanup_frame.grid(row=4, column=0, columnspan=3, sticky="we", pady=8)
@@ -182,6 +193,10 @@ class PotTranslatorApp:
         self.log_text.insert("end", message + "\n")
         self.log_text.see("end")
         self.log_text.configure(state="disabled")
+
+    def _provider_changed(self, _event: object = None) -> None:
+        if self.model_var.get().strip() in DEFAULT_MODELS.values():
+            self.model_var.set(default_model(self.provider_var.get()))
 
     def choose_files(self) -> None:
         files = filedialog.askopenfilenames(
@@ -384,30 +399,28 @@ class PotTranslatorApp:
             return
         output_dir = Path(self.output_dir_var.get() or "po")
         dry_run = self.dry_run_var.get()
-        if not dry_run and translate_pot.OpenAI is None:
-            messagebox.showerror("Missing dependency", "Install the openai package (`pip install openai`).")
-            return
-        env_path = self.app_root / ".env"
-        dotenv_val = translate_pot._load_dotenv_key("OPENAI_API_KEY", env_path)
-        if dotenv_val:
-            os.environ["OPENAI_API_KEY"] = dotenv_val
-        if not dry_run and not os.getenv("OPENAI_API_KEY"):
-            messagebox.showerror("Missing OPENAI_API_KEY", "Set OPENAI_API_KEY in your environment or .env file.")
-            return
-        model = self.model_var.get().strip() or "gpt-4.1"
+        provider = self.provider_var.get().strip() or "openai"
+        if not dry_run:
+            try:
+                provider = prepare_provider(provider, self.app_root / ".env")
+            except (RuntimeError, ValueError) as exc:
+                messagebox.showerror("Provider setup", str(exc))
+                return
+        model = self.model_var.get().strip() or default_model(provider)
         rpm = max(1, self.rpm_var.get() or 1)
         default_context = resolve_default_context(self.default_context_var.get(), self.app_root)
         translator = None
         if not dry_run:
             try:
-                translator = OpenAITranslator(
+                translator = AITranslator(
                     model,
                     rpm,
                     default_context=default_context,
-                    log_callback=self._log_openai_request,
+                    log_callback=self._log_ai_request,
+                    provider=provider,
                 )
             except Exception as exc:
-                messagebox.showerror("OpenAI error", f"Failed to initialize translator: {exc}")
+                messagebox.showerror("Provider error", f"Failed to initialize translator: {exc}")
                 return
         include_ai_comment = self.ai_comment_var.get()
         total_steps = len(self.selected_files) * len(languages)
@@ -438,7 +451,7 @@ class PotTranslatorApp:
         compile_mo: bool,
         max_entries: int,
         plural_overrides: Dict[str, str],
-        translator: Optional[OpenAITranslator],
+        translator: Optional[AITranslator],
         dry_run: bool,
         include_ai_comment: bool,
     ) -> None:
@@ -479,7 +492,7 @@ class PotTranslatorApp:
         finally:
             self._on_done()
 
-    def _log_openai_request(
+    def _log_ai_request(
         self,
         locale: str,
         entry_label: str,
@@ -490,7 +503,7 @@ class PotTranslatorApp:
         snippet = entry_label.strip().splitlines()[0] if entry_label else "<no msgid>"
         if len(snippet) > 80:
             snippet = snippet[:77] + "…"
-        self.log(f"[OpenAI] {locale}: {snippet}")
+        self.log(f"[{self.provider_var.get()}] {locale}: {snippet}")
         self.log(f"  system: {system_prompt}")
         self.log(f"  user: {user_prompt}")
         self.log(f"  response: {response}")
@@ -537,7 +550,7 @@ class PotTranslatorApp:
     def _update_progress_label(self) -> None:
         percent = int((self.progress_done / self.progress_total) * 100) if self.progress_total else 0
         self.progress_label.configure(text=f"Progress: {percent}% ({self.progress_done}/{self.progress_total})")
-        
+
         # Taskbar progress update
         hwnd = self.taskbar.get_hwnd(self.root)
         self.taskbar.set_progress_value(hwnd, self.progress_done, self.progress_total)

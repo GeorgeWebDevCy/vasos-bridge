@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Translate one or more XLIFF files using OpenAI and write translated copies.
+Translate one or more XLIFF files using an AI provider and write translated copies.
 
 Defaults to test jobs 771-776 in originals/ when --input is not provided.
 By default, outputs are written under translated/ (flat).
@@ -15,12 +15,9 @@ import sys
 import time
 import xml.etree.ElementTree as ET
 from pathlib import Path
-from typing import Dict, Iterable, Optional, Tuple
+from typing import Dict, Iterable, List, Optional, Tuple
 
-try:
-    from openai import OpenAI
-except ImportError:
-    OpenAI = None
+from llm_provider import ChatClient, SUPPORTED_PROVIDERS, default_model, prepare_provider
 
 
 XLING_NAMESPACE = "urn:oasis:names:tc:xliff:document:1.2"
@@ -93,21 +90,13 @@ def _write_xliff(tree: ET.ElementTree, output_path: Path) -> None:
         handle.write("\n")
 
 
-def _translate_text(client: "OpenAI", model: str, text: str, target_lang: str) -> str:
+def _translate_text(client: ChatClient, text: str, target_lang: str) -> str:
     system_prompt = (
         "You are a translation engine. Translate the user text to the target language while preserving all HTML tags, "
         "attributes, placeholders, and URLs. Return only the translated text. Do not add explanations or quotes."
     )
     user_prompt = f"Target language: {target_lang}\n\nText:\n{text}"
-    response = client.chat.completions.create(
-        model=model,
-        messages=[
-            {"role": "system", "content": system_prompt},
-            {"role": "user", "content": user_prompt},
-        ],
-        temperature=0,
-    )
-    return response.choices[0].message.content.strip()
+    return client.complete(system_prompt, user_prompt, temperature=0)
 
 
 def _pick_default_inputs() -> List[Path]:
@@ -153,21 +142,15 @@ def _parse_languages(lang_arg: str) -> List[str]:
     return ordered
 
 
-def _ensure_api_key() -> None:
-    # Prefer the repo-local .env to avoid stale global keys.
-    dotenv_val = _load_dotenv_key("OPENAI_API_KEY", Path.cwd() / ".env")
-    if dotenv_val:
-        os.environ["OPENAI_API_KEY"] = dotenv_val
-        return
-    if os.getenv("OPENAI_API_KEY"):
-        return
-    raise RuntimeError("Missing OPENAI_API_KEY (set it in your environment or .env).")
+def _ensure_provider(provider: str) -> None:
+    prepare_provider(provider, Path.cwd() / ".env")
 
 
 def translate_one(
     input_path: Path,
     output_path: Optional[Path],
     target_lang: str,
+    provider: str,
     model: str,
     rpm: int,
     max_units: int,
@@ -184,7 +167,7 @@ def translate_one(
     if output_path is None:
         output_path = _default_output_path(input_path, target_lang, output_root)
 
-    client = OpenAI()
+    client = ChatClient(provider, model)
     min_delay = 60.0 / float(max(1, rpm))
     last_call = 0.0
     translated_count = 0
@@ -204,7 +187,7 @@ def translate_one(
         if wait_for > 0:
             time.sleep(wait_for)
         call_started = time.time()
-        translated = _translate_text(client, model, source_text, target_lang)
+        translated = _translate_text(client, source_text, target_lang)
         last_call = call_started
 
         target_el.text = translated
@@ -223,7 +206,7 @@ def translate_one(
 
 
 def build_parser() -> argparse.ArgumentParser:
-    parser = argparse.ArgumentParser(description="Translate one or more XLIFF files using OpenAI.")
+    parser = argparse.ArgumentParser(description="Translate one or more XLIFF files using an AI provider.")
     parser.add_argument(
         "--input",
         "-i",
@@ -245,7 +228,16 @@ def build_parser() -> argparse.ArgumentParser:
             "Use 'all' for the default language set."
         ),
     )
-    parser.add_argument("--model", default="gpt-4.1", help="OpenAI model to use.")
+    parser.add_argument(
+        "--provider",
+        choices=SUPPORTED_PROVIDERS,
+        default="openai",
+        help="AI provider to use (default: openai).",
+    )
+    parser.add_argument(
+        "--model",
+        help="Provider model to use (defaults to a provider-specific model).",
+    )
     parser.add_argument("--rpm", type=int, default=120, help="Requests per minute throttle.")
     parser.add_argument(
         "--max-units",
@@ -265,15 +257,12 @@ def main() -> int:
     parser = build_parser()
     args = parser.parse_args()
 
-    if OpenAI is None:
-        print("Missing dependency: install openai (pip install openai).", file=sys.stderr)
-        return 1
-
     try:
-        _ensure_api_key()
+        _ensure_provider(args.provider)
     except RuntimeError as exc:
         print(str(exc), file=sys.stderr)
         return 1
+    model = args.model or default_model(args.provider)
 
     input_paths = [Path(args.input)] if args.input else _pick_default_inputs()
     missing_inputs = [path for path in input_paths if not path.exists()]
@@ -317,7 +306,8 @@ def main() -> int:
                         input_path=input_path,
                         output_path=None,
                         target_lang=lang,
-                        model=args.model,
+                        provider=args.provider,
+                        model=model,
                         rpm=args.rpm,
                         max_units=args.max_units,
                         overwrite=False,
@@ -341,7 +331,8 @@ def main() -> int:
                 input_path=input_path,
                 output_path=output_path,
                 target_lang=args.lang or "",
-                model=args.model,
+                provider=args.provider,
+                model=model,
                 rpm=args.rpm,
                 max_units=args.max_units,
                 overwrite=args.overwrite,

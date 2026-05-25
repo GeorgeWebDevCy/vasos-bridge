@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Translate gettext .pot templates via OpenAI, write per-language .po files, and optionally compile .mo files.
+Translate gettext .pot templates via an AI provider, write per-language .po files, and optionally compile .mo files.
 
 This script keeps the new feature isolated from the existing XLIFF tooling so the working software is unaffected.
 """
@@ -22,15 +22,12 @@ from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Callable, Dict, List, Optional, Sequence, Tuple
 
+from llm_provider import ChatClient, SUPPORTED_PROVIDERS, default_model, prepare_provider
+
 try:
     import tomllib
 except ModuleNotFoundError:  # pragma: no cover - optional dependency
     tomllib = None
-
-try:
-    from openai import OpenAI
-except ImportError:  # pragma: no cover - runtime dependency
-    OpenAI = None
 
 DEFAULT_LANGUAGES = ("ar", "cs", "de", "el", "pl", "uk")
 DEFAULT_OUTPUT_ROOT = Path("po")
@@ -167,14 +164,8 @@ def resolve_default_context(cli_value: Optional[str], root_dir: Path) -> Optiona
     return _read_default_context_from_config(root_dir)
 
 
-def _ensure_api_key() -> None:
-    dotenv_val = _load_dotenv_key("OPENAI_API_KEY", Path.cwd() / ".env")
-    if dotenv_val:
-        os.environ["OPENAI_API_KEY"] = dotenv_val
-        return
-    if os.getenv("OPENAI_API_KEY"):
-        return
-    raise RuntimeError("Missing OPENAI_API_KEY (set it in your environment or .env).")
+def _ensure_provider(provider: str) -> None:
+    prepare_provider(provider, Path.cwd() / ".env")
 
 
 def _quote_po_string(value: str) -> str:
@@ -343,16 +334,18 @@ def _plural_setting(lang: str, overrides: Dict[str, str]) -> Tuple[str, int]:
     return DEFAULT_PLURAL_FORMS, DEFAULT_NPLURALS
 
 
-class OpenAITranslator:
+class AITranslator:
     def __init__(
         self,
         model: str,
         rpm: int,
         default_context: Optional[str] = None,
         log_callback: Optional[LogCallback] = None,
+        provider: str = "openai",
     ):
         self.model = model
-        self.client = OpenAI()
+        self.provider = provider
+        self.client = ChatClient(provider, model)
         self.min_delay = 60.0 / max(1, rpm)
         self.last_call = 0.0
         self.log_callback = log_callback
@@ -367,15 +360,7 @@ class OpenAITranslator:
 
     def _call(self, system_prompt: str, user_prompt: str, target_lang: str, entry_label: str) -> str:
         self._throttle()
-        response = self.client.chat.completions.create(
-            model=self.model,
-            messages=[
-                {"role": "system", "content": system_prompt},
-                {"role": "user", "content": user_prompt},
-            ],
-            temperature=0,
-        )
-        result = response.choices[0].message.content.strip()
+        result = self.client.complete(system_prompt, user_prompt, temperature=0)
         if self.log_callback:
             self.log_callback(target_lang, entry_label, system_prompt, user_prompt, result)
         return result
@@ -435,6 +420,10 @@ class OpenAITranslator:
             if trimmed:
                 return trimmed
         return self.default_context
+
+
+# Compatibility for callers importing the previous OpenAI-specific name.
+OpenAITranslator = AITranslator
 
 
 def _parse_plural_response(payload: str, nplurals: int) -> List[str]:
@@ -546,7 +535,7 @@ def _ensure_ai_comment(entry: PoEntry) -> None:
 
 def _translate_entries(
     entries: List[PoEntry],
-    translator: Optional[OpenAITranslator],
+    translator: Optional[AITranslator],
     target_lang: str,
     nplurals: int,
     max_entries: int,
@@ -640,7 +629,7 @@ def _write_mo(catalog: Dict[str, str], path: Path) -> None:
 def translate_pot_template(
     pot_path: Path,
     languages: Sequence[str],
-    translator: Optional[OpenAITranslator],
+    translator: Optional[AITranslator],
     output_root: Path,
     compile_mo: bool,
     max_entries: int,
@@ -792,7 +781,13 @@ def build_parser() -> argparse.ArgumentParser:
         default=str(DEFAULT_OUTPUT_ROOT),
         help="Root directory where <lang> subdirectories are created for .po/.mo files.",
     )
-    parser.add_argument("--model", default="gpt-4.1", help="OpenAI model to use.")
+    parser.add_argument(
+        "--provider",
+        choices=SUPPORTED_PROVIDERS,
+        default="openai",
+        help="AI provider to use (default: openai).",
+    )
+    parser.add_argument("--model", help="Provider model to use (defaults to a provider-specific model).")
     parser.add_argument("--rpm", type=int, default=120, help="Requests per minute throttle.")
     parser.add_argument(
         "--max-entries",
@@ -813,7 +808,7 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument(
         "--dry-run",
         action="store_true",
-        help="Parse templates and write header-only .po files without calling OpenAI.",
+        help="Parse templates and write header-only .po files without calling an AI provider.",
     )
     parser.add_argument(
         "--default-context",
@@ -837,13 +832,9 @@ def main() -> int:
     parser = build_parser()
     args = parser.parse_args()
 
-    if not args.dry_run and OpenAI is None:
-        print("Missing dependency: install openai (pip install openai).", file=sys.stderr)
-        return 1
-
     if not args.dry_run:
         try:
-            _ensure_api_key()
+            _ensure_provider(args.provider)
         except RuntimeError as exc:
             print(str(exc), file=sys.stderr)
             return 1
@@ -862,10 +853,11 @@ def main() -> int:
     languages = _parse_languages(args.languages)
     plural_overrides = _parse_plural_overrides(args.plural_forms)
     default_context = resolve_default_context(args.default_context, Path.cwd())
+    model = args.model or default_model(args.provider)
     translator = (
         None
         if args.dry_run
-        else OpenAITranslator(args.model, args.rpm, default_context=default_context)
+        else AITranslator(model, args.rpm, default_context=default_context, provider=args.provider)
     )
     output_root = Path(args.output_dir)
     include_ai_comment = not args.no_ai_comment

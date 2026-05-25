@@ -3,4 +3,5 @@ originals/
 .venv/
 __pycache__/
 build/
+build-windows/
 *.spec
