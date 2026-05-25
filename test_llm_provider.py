@@ -76,6 +76,15 @@ class TestLLMProvider(unittest.TestCase):
         self.assertEqual(request.full_url, "https://ollama.com/api/chat")
         self.assertEqual(request.get_header("Authorization"), "Bearer secret")
 
+    def test_ollama_lists_available_models(self):
+        client = ChatClient("ollama", "gemma3")
+        response = _HTTPResponse({"models": [{"model": "gemma3"}, {"name": "llama3.2"}]})
+        with patch.dict(os.environ, {"OLLAMA_HOST": "http://localhost:11434"}, clear=True):
+            with patch("urllib.request.urlopen", return_value=response) as urlopen:
+                models = client.list_models()
+        self.assertEqual(models, ["gemma3", "llama3.2"])
+        self.assertEqual(urlopen.call_args.args[0].full_url, "http://localhost:11434/api/tags")
+
     def test_direct_ollama_cloud_loads_required_key_from_dotenv(self):
         with tempfile.TemporaryDirectory() as temp_dir:
             env_file = Path(temp_dir) / ".env"
@@ -108,6 +117,18 @@ class TestLLMProvider(unittest.TestCase):
         self.assertEqual(result, "Bonjour")
         self.assertEqual(messages.create.call_args.kwargs["system"], "system text")
 
+    def test_anthropic_lists_accessible_models(self):
+        models = Mock()
+        models.list.return_value = types.SimpleNamespace(
+            data=[types.SimpleNamespace(id="claude-sonnet-test")]
+        )
+        anthropic_module = types.SimpleNamespace(
+            Anthropic=lambda: types.SimpleNamespace(models=models)
+        )
+        with patch.dict("sys.modules", {"anthropic": anthropic_module}):
+            client = ChatClient("anthropic", "claude-test")
+            self.assertEqual(client.list_models(), ["claude-sonnet-test"])
+
     def test_openai_keeps_chat_completion_message_shape(self):
         create = Mock()
         create.return_value = types.SimpleNamespace(
@@ -126,6 +147,22 @@ class TestLLMProvider(unittest.TestCase):
         self.assertEqual(result, "Hola")
         messages = create.call_args.kwargs["messages"]
         self.assertEqual(messages[0], {"role": "system", "content": "system text"})
+
+    def test_openai_lists_text_models_without_specialized_models(self):
+        models = Mock()
+        models.list.return_value = types.SimpleNamespace(
+            data=[
+                types.SimpleNamespace(id="gpt-4.1"),
+                types.SimpleNamespace(id="text-embedding-3-small"),
+                types.SimpleNamespace(id="gpt-image-1"),
+            ]
+        )
+        openai_module = types.SimpleNamespace(
+            OpenAI=lambda: types.SimpleNamespace(models=models)
+        )
+        with patch.dict("sys.modules", {"openai": openai_module}):
+            client = ChatClient("openai", "gpt-4.1")
+            self.assertEqual(client.list_models(), ["gpt-4.1"])
 
 
 if __name__ == "__main__":

@@ -4,4 +4,6 @@ originals/
 __pycache__/
 build/
 build-windows/
+build-linux/
+.venv-linux/
 *.spec

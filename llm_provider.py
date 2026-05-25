@@ -8,7 +8,7 @@ import urllib.error
 import urllib.parse
 import urllib.request
 from pathlib import Path
-from typing import Dict, Optional
+from typing import Dict, List, Optional
 
 
 SUPPORTED_PROVIDERS = ("openai", "anthropic", "ollama")
@@ -128,10 +128,51 @@ class ChatClient:
             return "".join(block.text for block in response.content if block.type == "text").strip()
         return self._complete_ollama(system_prompt, user_prompt, temperature)
 
+    def list_models(self) -> List[str]:
+        """Return provider models suitable for selecting a translation model."""
+        if self.provider == "openai":
+            response = self._client.models.list()
+            model_ids = [model.id for model in response.data]
+            return sorted(model_id for model_id in model_ids if _is_openai_text_model(model_id))
+        if self.provider == "anthropic":
+            response = self._client.models.list(limit=100)
+            return [model.id for model in response.data]
+        return self._list_ollama_models()
+
+    def _ollama_headers(self) -> Dict[str, str]:
+        host = os.getenv("OLLAMA_HOST", "http://localhost:11434").rstrip("/")
+        hostname = urllib.parse.urlparse(host).hostname
+        headers = {"Content-Type": "application/json"}
+        api_key = os.getenv("OLLAMA_API_KEY")
+        if api_key and hostname not in ("localhost", "127.0.0.1", "::1"):
+            headers["Authorization"] = f"Bearer {api_key}"
+        return headers
+
+    def _list_ollama_models(self) -> List[str]:
+        host = os.getenv("OLLAMA_HOST", "http://localhost:11434").rstrip("/")
+        endpoint = f"{host}/tags" if host.endswith("/api") else f"{host}/api/tags"
+        request = urllib.request.Request(endpoint, headers=self._ollama_headers(), method="GET")
+        try:
+            with urllib.request.urlopen(request, timeout=30) as response:
+                decoded = json.loads(response.read().decode("utf-8"))
+        except urllib.error.HTTPError as exc:
+            detail = exc.read().decode("utf-8", errors="replace")
+            raise RuntimeError(f"Ollama model lookup failed ({exc.code}): {detail}") from exc
+        except urllib.error.URLError as exc:
+            raise RuntimeError(
+                f"Cannot reach Ollama at {endpoint}. Start Ollama or set OLLAMA_HOST."
+            ) from exc
+        return sorted(
+            {
+                str(model.get("model") or model.get("name", "")).strip()
+                for model in decoded.get("models", [])
+                if model.get("model") or model.get("name")
+            }
+        )
+
     def _complete_ollama(self, system_prompt: str, user_prompt: str, temperature: float) -> str:
         host = os.getenv("OLLAMA_HOST", "http://localhost:11434").rstrip("/")
         endpoint = f"{host}/chat" if host.endswith("/api") else f"{host}/api/chat"
-        hostname = urllib.parse.urlparse(host).hostname
         payload = json.dumps(
             {
                 "model": self.model,
@@ -143,14 +184,10 @@ class ChatClient:
                 "stream": False,
             }
         ).encode("utf-8")
-        headers = {"Content-Type": "application/json"}
-        api_key = os.getenv("OLLAMA_API_KEY")
-        if api_key and hostname not in ("localhost", "127.0.0.1", "::1"):
-            headers["Authorization"] = f"Bearer {api_key}"
         request = urllib.request.Request(
             endpoint,
             data=payload,
-            headers=headers,
+            headers=self._ollama_headers(),
             method="POST",
         )
         try:
@@ -167,3 +204,20 @@ class ChatClient:
             return decoded["message"]["content"].strip()
         except (KeyError, TypeError, AttributeError) as exc:
             raise RuntimeError(f"Unexpected Ollama response: {decoded!r}") from exc
+
+
+def _is_openai_text_model(model_id: str) -> bool:
+    lowered = model_id.lower()
+    excluded = (
+        "audio",
+        "dall-e",
+        "embedding",
+        "image",
+        "moderation",
+        "realtime",
+        "sora",
+        "transcribe",
+        "tts",
+        "whisper",
+    )
+    return not any(token in lowered for token in excluded)

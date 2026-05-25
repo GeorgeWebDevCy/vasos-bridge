@@ -194,7 +194,8 @@ class TranslatorApp:
         provider_box.grid(row=0, column=1, sticky="w", padx=(4, 12))
         provider_box.bind("<<ComboboxSelected>>", self._provider_changed)
         ttk.Label(options_frame, text="Model:").grid(row=0, column=2, sticky="w")
-        ttk.Entry(options_frame, textvariable=self.model_var, width=28).grid(row=0, column=3, sticky="w", padx=(4, 12))
+        self.model_box = ttk.Combobox(options_frame, textvariable=self.model_var, width=28)
+        self.model_box.grid(row=0, column=3, sticky="w", padx=(4, 12))
         ttk.Checkbutton(
             options_frame,
             text="Skip already filled targets",
@@ -211,6 +212,12 @@ class TranslatorApp:
         ttk.Button(options_frame, text="Configure Ignore List...", command=self.configure_ignore_list).grid(
             row=3, column=0, columnspan=2, sticky="w", pady=(4, 0)
         )
+        self.load_models_btn = ttk.Button(options_frame, text="Load Models", command=self.load_models)
+        self.load_models_btn.grid(row=3, column=2, sticky="e", pady=(4, 0), padx=(0, 4))
+        self.test_connection_btn = ttk.Button(
+            options_frame, text="Test Connection", command=self.test_connection
+        )
+        self.test_connection_btn.grid(row=3, column=3, sticky="w", pady=(4, 0))
 
         # Buttons
         self.translate_btn = ttk.Button(frm, text="Translate", command=self.start_translation)
@@ -240,6 +247,79 @@ class TranslatorApp:
     def _provider_changed(self, _event: object = None) -> None:
         if self.model_var.get().strip() in DEFAULT_MODELS.values():
             self.model_var.set(default_model(self.provider_var.get()))
+        self.model_box.configure(values=())
+
+    def _prepare_selected_provider(self) -> Tuple[str, str]:
+        provider = prepare_provider(self.provider_var.get().strip() or "openai", self.app_root / ".env")
+        model = self.model_var.get().strip() or default_model(provider)
+        return provider, model
+
+    def load_models(self) -> None:
+        try:
+            provider, model = self._prepare_selected_provider()
+        except (RuntimeError, ValueError) as exc:
+            messagebox.showerror("Provider setup", str(exc))
+            return
+        self.load_models_btn.config(state="disabled")
+        self.log(f"Loading available {provider} models...")
+        threading.Thread(target=self._load_models_worker, args=(provider, model), daemon=True).start()
+
+    def _load_models_worker(self, provider: str, model: str) -> None:
+        try:
+            models = ChatClient(provider, model).list_models()
+        except Exception as exc:  # noqa: BLE001
+            self.root.after(0, lambda error=str(exc): self._models_failed(error))
+            return
+        self.root.after(0, lambda: self._models_loaded(provider, models))
+
+    def _models_failed(self, error: str) -> None:
+        self.load_models_btn.config(state="normal")
+        self.log(f"[models error] {error}")
+        messagebox.showerror("Load models failed", error)
+
+    def _models_loaded(self, provider: str, models: List[str]) -> None:
+        self.load_models_btn.config(state="normal")
+        if provider != self.provider_var.get().strip():
+            return
+        self.model_box.configure(values=models)
+        if models and self.model_var.get().strip() not in models:
+            preferred = default_model(provider)
+            self.model_var.set(preferred if preferred in models else models[0])
+        self.log(f"Loaded {len(models)} available {provider} model(s).")
+        if not models:
+            messagebox.showinfo("No models found", f"No models were returned by {provider}.")
+
+    def test_connection(self) -> None:
+        try:
+            provider, model = self._prepare_selected_provider()
+        except (RuntimeError, ValueError) as exc:
+            messagebox.showerror("Provider setup", str(exc))
+            return
+        self.test_connection_btn.config(state="disabled")
+        self.log(f"Testing {provider} connection with {model}...")
+        threading.Thread(target=self._test_connection_worker, args=(provider, model), daemon=True).start()
+
+    def _test_connection_worker(self, provider: str, model: str) -> None:
+        try:
+            response = ChatClient(provider, model).complete(
+                "Return exactly the requested text, with no explanation.",
+                "Return exactly: connection-ok",
+                temperature=0,
+            )
+        except Exception as exc:  # noqa: BLE001
+            self.root.after(0, lambda error=str(exc): self._connection_failed(error))
+            return
+        self.root.after(0, lambda: self._connection_succeeded(provider, model, response))
+
+    def _connection_failed(self, error: str) -> None:
+        self.test_connection_btn.config(state="normal")
+        self.log(f"[connection error] {error}")
+        messagebox.showerror("Connection failed", error)
+
+    def _connection_succeeded(self, provider: str, model: str, response: str) -> None:
+        self.test_connection_btn.config(state="normal")
+        self.log(f"[connection ok] {provider}/{model}: {response}")
+        messagebox.showinfo("Connection successful", f"Connected to {provider} using {model}.")
 
     def choose_files(self) -> None:
         files = filedialog.askopenfilenames(

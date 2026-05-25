@@ -37,6 +37,8 @@ The translators support `openai`, `anthropic` (Claude), and `ollama`.
 | Ollama local | Install and run [Ollama](https://ollama.com/download); no API key is needed for local models. | None |
 | Ollama Cloud direct API | Create a key in [Ollama API key settings](https://ollama.com/settings/keys). | `OLLAMA_API_KEY` |
 
+ChatGPT subscriptions and Claude.ai paid plans are separate from their developer APIs. A ChatGPT subscription does not provide OpenAI API usage, and a Claude subscription does not provide Anthropic API usage; these applications need an API key with API billing configured for those providers. The apps do not sign into ChatGPT or Claude through a browser.
+
 For scripts or Python GUIs, create `.env` in this repository root. It is already ignored by git. Add only the provider values you use:
 
 ```env
@@ -57,13 +59,15 @@ For an Ollama server running locally, do not set `OLLAMA_HOST`, or set:
 OLLAMA_HOST=http://localhost:11434
 ```
 
-Ollama also supports running subscription/cloud models through the local Ollama service. Run `ollama signin`, then select the `ollama` provider with a cloud model such as `gpt-oss:120b-cloud`; this continues to use the local endpoint and does not require an `OLLAMA_API_KEY` in this application.
+Ollama also supports running cloud models through the local Ollama service. Run `ollama signin`, then select the `ollama` provider with a cloud model such as `gpt-oss:120b-cloud`; the app continues to call your local endpoint while Ollama handles cloud authentication, so an `OLLAMA_API_KEY` is not required in this application for this route.
 
-For packaged Windows `.exe` builds, put the same `.env` beside the `.exe` you launch. Never commit or share `.env` files.
+For packaged Windows `.exe` or Linux standalone builds, put the same `.env` beside the application file you launch. Never commit or share `.env` files.
 
 ### Testing Connections
 
-The connection tester sends one very small model request:
+In either desktop application, select a provider and press **Load Models** beside the model dropdown. This reads available models using the configured API key or Ollama endpoint. Select a model, then press **Test Connection** in the same options area; the result is displayed and written to the app log. The dropdown remains editable for custom or newly installed model names.
+
+The command-line connection tester sends the same kind of very small model request:
 
 ```bash
 python test_provider_connection.py --provider openai --model gpt-4.1
@@ -118,7 +122,7 @@ The CLI writes `po/<locale>/<domain>-<locale>.po` and, when `--compile` is used,
 
 #### GUI
 
-Alternatively, run `python pot_translator_gui.py` to launch a desktop interface. Select one or more `.pot` files, enter a comma-separated list of target languages, choose an output directory (defaults to `po`), optionally enable `.mo` compilation and dry runs, and set plural-form overrides in `lang=expr` form. The GUI also exposes the provider, model, requests-per-minute throttle, and per-language entry limits before starting a batch. Log output and progress appear in real time, and generated `.po`/`.mo` bundles follow the `po/<locale>/<domain>-<locale>.(po|mo)` pattern.
+Alternatively, run `python pot_translator_gui.py` to launch a desktop interface. Select one or more `.pot` files, enter a comma-separated list of target languages, choose an output directory (defaults to `po`), optionally enable `.mo` compilation and dry runs, and set plural-form overrides in `lang=expr` form. The GUI also exposes the provider, a loadable model dropdown, connection testing, requests-per-minute throttle, and per-language entry limits before starting a batch. Log output and progress appear in real time, and generated `.po`/`.mo` bundles follow the `po/<locale>/<domain>-<locale>.(po|mo)` pattern.
 
 If you need to strip the AI-generated “References” paragraph from existing bundles without retranslating, use the **Clean AI reference fragments** section: point it at a `.po` file or directory, optionally recompile the `.mo`, and press the button to rewrite every entry that still contains the stray notes.
 
@@ -157,7 +161,8 @@ You can translate XLIFF files using OpenAI, Anthropic Claude, or local/cloud Oll
 **Using the GUI:**
 Run `python translator_gui.py` to open the interface.
 *   Select files to translate.
-*   Choose target languages.
+*   Choose a provider, press **Load Models**, and pick an available model.
+*   Press **Test Connection** before translating to validate that model and provider.
 *   Set options (e.g., skip pre-filled, overwrite).
 *   Monitor progress and logs in real-time.
 *   Outputs are saved to `translated/` with `-<lang>-translated.xliff` names unless overwrite is enabled.
@@ -168,6 +173,15 @@ Build a standalone `.exe` using PyInstaller:
 .\build_windows_exe.ps1
 ```
 The script creates/uses `.venv` in the repo. The outputs are `dist\CucumberDestroyer_TranslatorGUI.exe` and `dist\CucumberDestroyer_PotTranslatorGUI.exe`. Place a `.env` file next to the exe for hosted-provider keys, or run Ollama locally before choosing its provider.
+
+**Linux executable (GUI):**
+On Ubuntu/Debian, install Tk support once, then build standalone executables:
+```bash
+sudo apt install python3-tk python3-venv
+chmod +x build_linux.sh
+./build_linux.sh
+```
+The script creates/uses `.venv-linux` in the repo. The outputs are `dist/CucumberDestroyer_TranslatorGUI-linux-x86_64` and `dist/CucumberDestroyer_PotTranslatorGUI-linux-x86_64`. Put `.env` beside the executable for hosted-provider keys, or run Ollama locally before choosing its provider.
 
 **Using the CLI:**
 Translate a single file (or batch via scripts):
